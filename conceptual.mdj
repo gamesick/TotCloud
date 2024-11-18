@@ -7900,8 +7900,7 @@
 							"tail": {
 								"$ref": "AAAAAAGTQDE5x1yZfnc="
 							},
-							"lineStyle": 1,
-							"points": "1021:591;1024:536;802:534"
+							"points": "1024:591;1024:536;802:536;802:535"
 						},
 						{
 							"_type": "UMLAssociationView",
