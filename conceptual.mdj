@@ -1817,12 +1817,12 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 428,
-									"top": 548,
+									"left": 488,
+									"top": 528,
 									"width": 92.13623046875,
 									"height": 13,
-									"alpha": 2.03444173172207,
-									"distance": 2.23606797749979,
+									"alpha": 1.897377442207084,
+									"distance": 65.45991139621256,
 									"hostEdge": {
 										"$ref": "AAAAAAGTHDXZLEPPjEY="
 									},
@@ -2555,12 +2555,12 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 288,
+									"left": 312,
 									"top": 603,
 									"width": 32.880859375,
 									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 15,
+									"alpha": 0.558599128077701,
+									"distance": 28.30194339616981,
 									"hostEdge": {
 										"$ref": "AAAAAAGTNiEp752lb30="
 									},
