@@ -5,21 +5,21 @@ require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Obtener y sanitizar los datos del formulario
-    $correo_electronico = filter_input(INPUT_POST, 'correo_electronico', FILTER_SANITIZE_EMAIL);
-    $contrasenya = $_POST['contrasenya']; // Nota: En producción, las contraseñas deben ser manejadas de forma segura
+    $nombreUsuario = trim($_POST['nombreUsuario']);
+    $contrasenya = $_POST['contrasenya'];
 
-    if ($correo_electronico && $contrasenya) {
+    if ($nombreUsuario && $contrasenya) {
         try {
             // Preparar la consulta para evitar inyecciones SQL
-            $stmt = $pdo->prepare('SELECT id, contrasenya FROM usuarios WHERE correo_electronico = :correo_electronico');
-            $stmt->execute(['correo_electronico' => $correo_electronico]);
+            $stmt = $pdo->prepare('SELECT idUsuario, contrasenya FROM USUARIO WHERE nombreUsuario = :nombreUsuario');
+            $stmt->execute(['nombreUsuario' => $nombreUsuario]);
             $usuario = $stmt->fetch();
 
             if ($usuario) {
-                // Verificar la contraseña (en producción, usa password_verify)
-                if ($contrasenya === $usuario['contrasenya']) {
+                // Verificar la contraseña usando password_verify
+                if (password_verify($contrasenya, $usuario['contrasenya'])) {
                     // Autenticación exitosa
-                    $_SESSION['usuario_id'] = $usuario['id'];
+                    $_SESSION['usuario_id'] = $usuario['idUsuario'];
                     header('Location: home.php');
                     exit();
                 } else {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } else {
                 // Usuario no encontrado
-                $error = 'Correo electrónico no registrado.';
+                $error = 'Nombre de usuario no registrado.';
             }
         } catch (Exception $e) {
             // Manejo de errores

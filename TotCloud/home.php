@@ -10,9 +10,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
 require 'config.php';
 
-// Opcional: Obtener información adicional del usuario
+// Obtener información del usuario
 try {
-    $stmt = $pdo->prepare('SELECT correo_electronico FROM usuarios WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT nombreUsuario FROM USUARIO WHERE idUsuario = :id');
     $stmt->execute(['id' => $_SESSION['usuario_id']]);
     $usuario = $stmt->fetch();
 } catch (Exception $e) {
@@ -43,7 +43,7 @@ try {
         .options a {
             display: block;
             padding: 20px 40px;
-            background-color: #8CAF50;
+            background-color: #4CAF50;
             color: white;
             text-decoration: none;
             border-radius: 8px;
@@ -66,7 +66,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="welcome">
-        <h2>Bienvenido, <?php echo htmlspecialchars($usuario['correo_electronico']); ?>!</h2>
+        <h2>Bienvenido, <?php echo htmlspecialchars($usuario['nombreUsuario']); ?>!</h2>
         <p>Selecciona una opción:</p>
     </div>
     <div class="options">

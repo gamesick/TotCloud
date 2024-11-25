@@ -3,8 +3,8 @@
 
 $host = 'localhost';
 $db   = 'totcloud';
-$user = 'tu_usuario';
-$pass = 'tu_contraseña';
+$user = 'root'; // Reemplaza con tu usuario de MySQL
+$pass = '';     // Reemplaza con tu contraseña de MySQL si tiene
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
