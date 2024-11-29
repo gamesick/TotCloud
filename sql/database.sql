@@ -14,14 +14,14 @@ CREATE TABLE USUARIO (
  	idUsuario INT(8) PRIMARY KEY, 
     nombreUsuario VARCHAR(64) NOT NULL UNIQUE, 
     idOrganizacion INT(8) NOT NULL, 
-    FOREIGN KEY (idOrganizacion) REFERENCES ORGANIZACION (idOrganizacion)
+    FOREIGN KEY (idOrganizacion) REFERENCES ORGANIZACION (idOrganizacion),
     FOREIGN KEY (idUsuario) REFERENCES PERSONA(idPersona) 
 ); 
 
 
 CREATE TABLE PERSONAL ( 
     idPersonal INT(8) PRIMARY KEY, 
-    nombrePersonal VARCHAR(64) NOT NULL UNIQUE 
+    nombrePersonal VARCHAR(64) NOT NULL UNIQUE,
     FOREIGN KEY (idPersonal) REFERENCES PERSONA(idPersona) 
 ); 
 
