@@ -27,7 +27,7 @@ CREATE TABLE PERSONAL (
 
 
 CREATE TABLE GRUPO ( 
-    idGrupo INT(8) PRIMARY KEY, 
+    idGrupo INT(8) AUTO_INCREMENT PRIMARY KEY, 
     nombreGrupo VARCHAR(64) NOT NULL UNIQUE, 
     descripcion VARCHAR(256), 
     idPersonal INT(8) NOT NULL, 
