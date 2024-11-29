@@ -10,12 +10,11 @@ CREATE TABLE ORGANIZACION (
 ); 
 
 
-CREATE TABLE USUARIO (
- 	idUsuario INT(8) PRIMARY KEY, 
-    nombreUsuario VARCHAR(64) NOT NULL UNIQUE, 
-    idOrganizacion INT(8) NOT NULL, 
-    FOREIGN KEY (idOrganizacion) REFERENCES ORGANIZACION (idOrganizacion),
-    FOREIGN KEY (idUsuario) REFERENCES PERSONA(idPersona) 
+CREATE TABLE PERSONA ( 
+    idPersona INT(8) PRIMARY KEY, 
+    nombre VARCHAR(64) NOT NULL, 
+    apellido VARCHAR(64) NOT NULL, 
+    email VARCHAR(64) NOT NULL
 ); 
 
 
@@ -35,13 +34,14 @@ CREATE TABLE GRUPO (
 ); 
 
 
-CREATE TABLE PERSONA ( 
-    idPersona INT(8) PRIMARY KEY, 
-    nombre VARCHAR(64) NOT NULL, 
-    apellido VARCHAR(64) NOT NULL, 
-    email VARCHAR(64) NOT NULL, 
+CREATE TABLE USUARIO (
+ 	idUsuario INT(8) PRIMARY KEY, 
+    nombreUsuario VARCHAR(64) NOT NULL UNIQUE, 
+    idOrganizacion INT(8) NOT NULL, 
     idGrupo INT(8), 
-    FOREIGN KEY (idGrupo) REFERENCES GRUPO(idGrupo) 
+    FOREIGN KEY (idGrupo) REFERENCES GRUPO(idGrupo), 
+    FOREIGN KEY (idOrganizacion) REFERENCES ORGANIZACION (idOrganizacion),
+    FOREIGN KEY (idUsuario) REFERENCES PERSONA(idPersona) 
 ); 
 
 
