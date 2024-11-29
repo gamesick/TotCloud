@@ -3,8 +3,8 @@
 
 $host = 'localhost';
 $db   = 'totcloud';
-$user = 'root'; // Reemplaza con tu usuario de MySQL
-$pass = '';     // Reemplaza con tu contraseña de MySQL si tiene
+$user = 'app_user'; // Usuario creado con permisos limitados
+$pass = 'tu_contraseña_segura'; // Contraseña del usuario
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -19,7 +19,8 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (PDOException $e) {
     // Manejo de errores de conexión
-    echo "Error de conexión: " . $e->getMessage();
+    error_log("Error de conexión: " . $e->getMessage());
+    echo "Error de conexión. Por favor, intenta de nuevo más tarde.";
     exit();
 }
 ?>

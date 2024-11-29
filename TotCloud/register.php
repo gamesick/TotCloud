@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];
     $email = $_POST['email'];
-    $idGrupo = $_POST['idGrupo'];
 
     // Validar los datos
     if (empty($nombreUsuario) || empty($contrasenya) || empty($idOrganizacion)) {
@@ -21,17 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             // Insertar la nueva persona
-            $stmt = $pdo->prepare("INSERT INTO PERSONA (nombre, apellido, email, idGrupo) VALUES (:nombre, :apellido, :email, :idGrupo)");
+            $stmt = $pdo->prepare("INSERT INTO PERSONA (nombre, apellido, email) VALUES (:nombre, :apellido, :email)");
             $stmt->execute([
                 'nombre' => $nombre,
                 'apellido' => $apellido,
-                'email' => $email,
-                'idGrupo' => $idGrupo
+                'email' => $email
             ]);
             
+            $idUsuario = $pdo->lastInsertId();
             // Insertar el nuevo usuario
-            $stmt = $pdo->prepare("INSERT INTO USUARIO (nombreUsuario, contrasenya, idOrganizacion) VALUES (:nombreUsuario, :contrasenya, :idOrganizacion)");
+            $stmt = $pdo->prepare("INSERT INTO USUARIO (idUsuario, nombreUsuario, contrasenya, idOrganizacion) VALUES (:idUsuario, :nombreUsuario, :contrasenya, :idOrganizacion)");
             $stmt->execute([
+                'idUsuario' => $idUsuario,
                 'nombreUsuario' => $nombreUsuario,
                 'contrasenya' => $hashedPassword,
                 'idOrganizacion' => $idOrganizacion
@@ -148,18 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->query("SELECT idOrganizacion, nombreOrganizacion FROM ORGANIZACION");
                 while ($row = $stmt->fetch()) {
                     echo '<option value="' . htmlspecialchars($row['idOrganizacion']) . '">' . htmlspecialchars($row['nombreOrganizacion']) . '</option>';
-                }
-                ?>
-            </select>
-
-            <label for="idGrupo">Grupo:</label>
-            <select id="idGrupo" name="idGrupo" required>
-                <option value="">Selecciona un grupo</option>
-                <?php
-                // Obtener las organizaciones para el desplegable
-                $stmt = $pdo->query("SELECT idGrupo, nombreGrupo FROM GRUPO");
-                while ($row = $stmt->fetch()) {
-                    echo '<option value="' . htmlspecialchars($row['idGrupo']) . '">' . htmlspecialchars($row['nombreGrupo']) . '</option>';
                 }
                 ?>
             </select>

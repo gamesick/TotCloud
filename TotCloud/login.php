@@ -5,14 +5,14 @@ require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Obtener y sanitizar los datos del formulario
-    $nombreUsuario = trim($_POST['nombreUsuario']);
+    $nombre = trim($_POST['nombreUsuario']);
     $contrasenya = $_POST['contrasenya'];
 
-    if ($nombreUsuario && $contrasenya) {
+    if ($nombre && $contrasenya) {
         try {
             // Preparar la consulta para evitar inyecciones SQL
             $stmt = $pdo->prepare('SELECT idUsuario, contrasenya FROM USUARIO WHERE nombreUsuario = :nombreUsuario');
-            $stmt->execute(['nombreUsuario' => $nombreUsuario]);
+            $stmt->execute(['nombreUsuario' => $nombre]);
             $usuario = $stmt->fetch();
 
             if ($usuario) {
@@ -27,8 +27,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'Contraseña incorrecta.';
                 }
             } else {
-                // Usuario no encontrado
-                $error = 'Nombre de usuario no registrado.';
+                // Preparar la consulta para evitar inyecciones SQL
+                $stmt = $pdo->prepare('SELECT idPersonal, contrasenya FROM PERSONAL WHERE nombrePersonal = :nombreUsuario');
+                $stmt->execute(['nombreUsuario' => $nombre]);
+                $usuario = $stmt->fetch();
+
+                if ($usuario) {
+                    // Verificar la contraseña usando password_verify
+                    if (password_verify($contrasenya, $usuario['contrasenya'])) {
+                        // Autenticación exitosa
+                        $_SESSION['usuario_id'] = $usuario['idPersonal'];
+                        header('Location: homeAdmin.php');
+                        exit();
+                    } else {
+                        // Contraseña incorrecta
+                        $error = 'Contraseña incorrecta.';
+                    }
+                } else {
+                    // Usuario no encontrado
+                    $error = 'Nombre de usuario no registrado.';
+            }
             }
         } catch (Exception $e) {
             // Manejo de errores
