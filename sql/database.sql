@@ -11,7 +11,7 @@ CREATE TABLE ORGANIZACION (
 
 
 CREATE TABLE PERSONA ( 
-    idPersona INT(8) PRIMARY KEY, 
+    idPersona INT(8) AUTO_INCREMENT PRIMARY KEY, 
     nombre VARCHAR(64) NOT NULL, 
     apellido VARCHAR(64) NOT NULL, 
     email VARCHAR(64) NOT NULL
@@ -21,6 +21,7 @@ CREATE TABLE PERSONA (
 CREATE TABLE PERSONAL ( 
     idPersonal INT(8) PRIMARY KEY, 
     nombrePersonal VARCHAR(64) NOT NULL UNIQUE,
+    contrasenya VARCHAR(255) NOT NULL,
     FOREIGN KEY (idPersonal) REFERENCES PERSONA(idPersona) 
 ); 
 
@@ -37,6 +38,7 @@ CREATE TABLE GRUPO (
 CREATE TABLE USUARIO (
  	idUsuario INT(8) PRIMARY KEY, 
     nombreUsuario VARCHAR(64) NOT NULL UNIQUE, 
+    contrasenya VARCHAR(255) NOT NULL,
     idOrganizacion INT(8) NOT NULL, 
     idGrupo INT(8), 
     FOREIGN KEY (idGrupo) REFERENCES GRUPO(idGrupo), 
