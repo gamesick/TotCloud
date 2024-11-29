@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($nombre && $contrasenya) {
         try {
-            // Preparar la consulta para evitar inyecciones SQL
+            // Intentar autenticar en la tabla USUARIO
             $stmt = $pdo->prepare('SELECT idUsuario, contrasenya FROM USUARIO WHERE nombreUsuario = :nombreUsuario');
             $stmt->execute(['nombreUsuario' => $nombre]);
             $usuario = $stmt->fetch();
@@ -27,17 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'Contraseña incorrecta.';
                 }
             } else {
-                // Preparar la consulta para evitar inyecciones SQL
+                // Intentar autenticar en la tabla PERSONAL
                 $stmt = $pdo->prepare('SELECT idPersonal, contrasenya FROM PERSONAL WHERE nombrePersonal = :nombreUsuario');
                 $stmt->execute(['nombreUsuario' => $nombre]);
-                $usuario = $stmt->fetch();
+                $personal = $stmt->fetch();
 
-                if ($usuario) {
+                if ($personal) {
                     // Verificar la contraseña usando password_verify
-                    if (password_verify($contrasenya, $usuario['contrasenya'])) {
+                    if (password_verify($contrasenya, $personal['contrasenya'])) {
                         // Autenticación exitosa
-                        $_SESSION['usuario_id'] = $usuario['idPersonal'];
-                        header('Location: homeAdmin.php');
+                        $_SESSION['personal_id'] = $personal['idPersonal'];
+                        header('Location: homeadmin.php');
                         exit();
                     } else {
                         // Contraseña incorrecta
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     // Usuario no encontrado
                     $error = 'Nombre de usuario no registrado.';
-            }
+                }
             }
         } catch (Exception $e) {
             // Manejo de errores

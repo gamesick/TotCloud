@@ -3,40 +3,18 @@
 session_start();
 require 'config.php';
 
-// Verificar si el empleado está autenticado
-if (!isset($_SESSION['personal_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
-// Verificar si el empleado es administrador
-try {
-    // Obtener el grupo al que pertenece el empleado desde la tabla PERSONAL
-    $stmt = $pdo->prepare("
-        SELECT G.nombreGrupo 
-        FROM PERSONAL P
-        JOIN GRUPO G ON P.idGrupo = G.idGrupo
-        WHERE P.idPersonal = :idPersonal
-    ");
-    $stmt->execute(['idPersonal' => $_SESSION['personal_id']]);
-    $grupo = $stmt->fetch();
-
-    // Asumimos que el nombre del grupo de administradores es 'Administradores'
-    if (!$grupo || $grupo['nombreGrupo'] !== 'Administradores') {
-        echo "Acceso denegado. No tienes permisos para acceder a esta página.";
-        exit();
-    }
-} catch (PDOException $e) {
-    echo "Error al verificar permisos: " . $e->getMessage();
+// Verificar si el empleado está autenticado y es administrador
+if (!isset($_SESSION['personal_id']) || !isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
+    echo "Acceso denegado. No tienes permisos para acceder a esta página.";
     exit();
 }
 
 // Obtener información del empleado desde la tabla PERSONAL
 try {
     $stmt = $pdo->prepare('
-        SELECT P.nombre, P.apellido 
-        FROM PERSONAL P 
-        WHERE P.idPersonal = :idPersonal
+        SELECT nombre, apellido 
+        FROM PERSONAL 
+        WHERE idPersonal = :idPersonal
     ');
     $stmt->execute(['idPersonal' => $_SESSION['personal_id']]);
     $empleado = $stmt->fetch();
