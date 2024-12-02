@@ -1,22 +1,24 @@
 <?php
 // home.php
 session_start();
-
-// Verificar si el usuario está autenticado
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
 require 'config.php';
 
-// Obtener información del usuario
+// Obtener información del empleado desde la tabla PERSONAL
 try {
-    $stmt = $pdo->prepare('SELECT nombreUsuario FROM USUARIO WHERE idUsuario = :id');
-    $stmt->execute(['id' => $_SESSION['usuario_id']]);
-    $usuario = $stmt->fetch();
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    $stmt = $pdo->prepare('
+        SELECT nombre, apellido 
+        FROM PERSONA 
+        WHERE idPersona = :idUsuario
+    ');
+    $stmt->execute(['idUsuario' => $_SESSION['usuario_id']]);
+    $cliente = $stmt->fetch();
+
+    if (!$cliente) {
+        echo "Usuario no encontrado.";
+        exit();
+    }
+} catch (PDOException $e) {
+    echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
 }
 ?>
@@ -66,7 +68,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="welcome">
-        <h2>Bienvenido, <?php echo htmlspecialchars($usuario['nombreUsuario']); ?>!</h2>
+    <h2>Bienvenido, <?php echo htmlspecialchars($cliente['nombre'] . ' ' . $cliente['apellido']); ?>!</h2>
         <p>Selecciona una opción:</p>
     </div>
     <div class="options">
