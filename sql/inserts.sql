@@ -12,7 +12,7 @@ INSERT INTO PERSONA (idPersona, nombre, apellido, email) VALUES
 
 -- 2. PERSONAL
 INSERT INTO PERSONAL (idPersonal, contrasenya, nombrePersonal) VALUES
-(4, '$2y$10$M9PdDxEX.n5VEKz4JDB09OEd57h59NhriVqvljNAdEUL9U2MgshE6', 'laura.king');
+(4, '$2y$10$JIvQpR5r8Ht96tCfR2s8w.WEZsERoLRRNAeGQ6/G.B/lMUyQhf25a', 'laura.king');
 
 -- 4. GRUPO
 INSERT INTO GRUPO (idGrupo, nombreGrupo, descripcion, idPersonal) VALUES
