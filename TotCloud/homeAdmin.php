@@ -3,18 +3,12 @@
 session_start();
 require 'config.php';
 
-// Verificar si el empleado está autenticado y es administrador
-if (!isset($_SESSION['personal_id']) || !isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
-    echo "Acceso denegado. No tienes permisos para acceder a esta página.";
-    exit();
-}
-
 // Obtener información del empleado desde la tabla PERSONAL
 try {
     $stmt = $pdo->prepare('
         SELECT nombre, apellido 
-        FROM PERSONAL 
-        WHERE idPersonal = :idPersonal
+        FROM PERSONA 
+        WHERE idPersona = :idPersonal
     ');
     $stmt->execute(['idPersonal' => $_SESSION['personal_id']]);
     $empleado = $stmt->fetch();

@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (password_verify($contrasenya, $personal['contrasenya'])) {
                         // Autenticación exitosa
                         $_SESSION['personal_id'] = $personal['idPersonal'];
-                        header('Location: homeadmin.php');
+                        header('Location: homeAdmin.php');
                         exit();
                     } else {
                         // Contraseña incorrecta
