@@ -1,4 +1,4 @@
-CREATE DATABASE TOTCLOUD; 
+CREATE DATABASE totcloud; 
 
 
 CREATE TABLE ORGANIZACION ( 
@@ -114,7 +114,7 @@ idVideoConference INT(8) PRIMARY KEY
 
 CREATE TABLE VC_CONFIG ( 
     idVCConfig INT(8) PRIMARY KEY, 
-    calidad VARCHAR(4) NOT NULL,
+    calidad VARCHAR(8) NOT NULL,
     anchoBanda INT(16) NOT NULL, 
     maxParticipantes INT(8) NOT NULL, 
     idioma VARCHAR(64) NOT NULL, 
