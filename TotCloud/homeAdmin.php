@@ -108,6 +108,7 @@ try {
         <div class="admin-suboptions">
             <a href="AdministrarGrupos.php">Administrar Grupos</a>
             <a href="AsignarPrivilegios.php">Asignar Privilegios</a>
+            <a href="AsignarGrupos.php">Asignar Grupos</a>
         </div>
     </div>
     <script>

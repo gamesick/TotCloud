@@ -3,33 +3,6 @@
 session_start();
 require 'config.php';
 
-// Verificar si el usuario está autenticado y es administrador
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
-try {
-    // Verificar si el usuario pertenece al grupo 'Administradores'
-    $stmt = $pdo->prepare("
-        SELECT G.nombreGrupo 
-        FROM USUARIO U
-        JOIN PERSONA P ON U.idUsuario = P.idPersona
-        JOIN GRUPO G ON P.idGrupo = G.idGrupo
-        WHERE U.idUsuario = :idUsuario
-    ");
-    $stmt->execute(['idUsuario' => $_SESSION['usuario_id']]);
-    $grupo = $stmt->fetch();
-
-    if (!$grupo || $grupo['nombreGrupo'] !== 'Administradores') {
-        echo "Acceso denegado. No tienes permisos para acceder a esta página.";
-        exit();
-    }
-} catch (PDOException $e) {
-    echo "Error al verificar permisos: " . $e->getMessage();
-    exit();
-}
-
 // Manejo de acciones (Agregar, Editar, Eliminar)
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $idGrupo = isset($_GET['id']) ? intval($_GET['id']) : 0;

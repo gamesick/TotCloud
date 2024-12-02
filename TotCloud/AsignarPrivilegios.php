@@ -1,155 +1,101 @@
 <?php
-// AdministrarGrupos.php
+// AsignarPrivilegios.php
 session_start();
 require 'config.php';
 
-// Verificar si el usuario está autenticado y es administrador
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
+// Obtener información del empleado desde la tabla PERSONAL
 try {
-    // Verificar si el usuario pertenece al grupo 'Administradores'
-    $stmt = $pdo->prepare("
-        SELECT G.nombreGrupo 
-        FROM USUARIO U
-        JOIN PERSONA P ON U.idUsuario = P.idPersona
-        JOIN GRUPO G ON P.idGrupo = G.idGrupo
-        WHERE U.idUsuario = :idUsuario
-    ");
-    $stmt->execute(['idUsuario' => $_SESSION['usuario_id']]);
-    $grupo = $stmt->fetch();
+    $stmt = $pdo->prepare('
+        SELECT nombre, apellido 
+        FROM PERSONA 
+        WHERE idPersona = :idPersonal
+    ');
+    $stmt->execute(['idPersonal' => $_SESSION['personal_id']]);
+    $empleado = $stmt->fetch();
 
-    if (!$grupo || $grupo['nombreGrupo'] !== 'Administradores') {
-        echo "Acceso denegado. No tienes permisos para acceder a esta página.";
+    if (!$empleado) {
+        echo "Empleado no encontrado.";
         exit();
     }
 } catch (PDOException $e) {
-    echo "Error al verificar permisos: " . $e->getMessage();
+    echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
 }
 
-// Manejo de acciones (Agregar, Editar, Eliminar)
+// Manejo de asignaciones (Agregar, Eliminar)
 $action = isset($_GET['action']) ? $_GET['action'] : '';
-$idGrupo = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$idGrupo = isset($_GET['idGrupo']) ? intval($_GET['idGrupo']) : 0;
+$idPrivilegio = isset($_GET['idPrivilegio']) ? intval($_GET['idPrivilegio']) : 0;
 $error = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($action === 'add') {
-        // Agregar nuevo grupo
-        $nombreGrupo = trim($_POST['nombreGrupo']);
-        $descripcion = trim($_POST['descripcion']);
-        $idPersonal = intval($_POST['idPersonal']);
-
-        if (empty($nombreGrupo)) {
-            $error = "El nombre del grupo es obligatorio.";
+if ($action === 'assign' && $idGrupo > 0 && $idPrivilegio > 0) {
+    // Asignar privilegio al grupo
+    try {
+        $stmt = $pdo->prepare("INSERT INTO R_GRUPO_PRIVILEGIOS (idGrupo, idPrivilegio) VALUES (:idGrupo, :idPrivilegio)");
+        $stmt->execute([
+            'idGrupo' => $idGrupo,
+            'idPrivilegio' => $idPrivilegio
+        ]);
+        $success = "Privilegio asignado exitosamente.";
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) { // Violación de unicidad
+            $error = "El privilegio ya está asignado a este grupo.";
         } else {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO GRUPO (nombreGrupo, descripcion, idPersonal) VALUES (:nombreGrupo, :descripcion, :idPersonal)");
-                $stmt->execute([
-                    'nombreGrupo' => $nombreGrupo,
-                    'descripcion' => $descripcion,
-                    'idPersonal' => $idPersonal
-                ]);
-                $success = "Grupo agregado exitosamente.";
-            } catch (PDOException $e) {
-                if ($e->getCode() == 23000) { // Violación de unicidad
-                    $error = "El nombre del grupo ya está en uso.";
-                } else {
-                    $error = "Error al agregar el grupo: " . $e->getMessage();
-                }
-            }
-        }
-    } elseif ($action === 'edit' && $idGrupo > 0) {
-        // Editar grupo existente
-        $nombreGrupo = trim($_POST['nombreGrupo']);
-        $descripcion = trim($_POST['descripcion']);
-        $idPersonal = intval($_POST['idPersonal']);
-
-        if (empty($nombreGrupo)) {
-            $error = "El nombre del grupo es obligatorio.";
-        } else {
-            try {
-                $stmt = $pdo->prepare("UPDATE GRUPO SET nombreGrupo = :nombreGrupo, descripcion = :descripcion, idPersonal = :idPersonal WHERE idGrupo = :idGrupo");
-                $stmt->execute([
-                    'nombreGrupo' => $nombreGrupo,
-                    'descripcion' => $descripcion,
-                    'idPersonal' => $idPersonal,
-                    'idGrupo' => $idGrupo
-                ]);
-                $success = "Grupo actualizado exitosamente.";
-            } catch (PDOException $e) {
-                if ($e->getCode() == 23000) { // Violación de unicidad
-                    $error = "El nombre del grupo ya está en uso.";
-                } else {
-                    $error = "Error al actualizar el grupo: " . $e->getMessage();
-                }
-            }
+            $error = "Error al asignar el privilegio: " . $e->getMessage();
         }
     }
-} elseif ($action === 'delete' && $idGrupo > 0) {
-    // Eliminar grupo
+} elseif ($action === 'remove' && $idGrupo > 0 && $idPrivilegio > 0) {
+    // Eliminar privilegio del grupo
     try {
-        // Verificar si hay personas asignadas a este grupo
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM PERSONA WHERE idGrupo = :idGrupo");
-        $stmt->execute(['idGrupo' => $idGrupo]);
-        $count = $stmt->fetchColumn();
-
-        if ($count > 0) {
-            $error = "No se puede eliminar el grupo porque tiene personas asignadas.";
-        } else {
-            $stmt = $pdo->prepare("DELETE FROM GRUPO WHERE idGrupo = :idGrupo");
-            $stmt->execute(['idGrupo' => $idGrupo]);
-            $success = "Grupo eliminado exitosamente.";
-        }
+        $stmt = $pdo->prepare("DELETE FROM R_GRUPO_PRIVILEGIOS WHERE idGrupo = :idGrupo AND idPrivilegio = :idPrivilegio");
+        $stmt->execute([
+            'idGrupo' => $idGrupo,
+            'idPrivilegio' => $idPrivilegio
+        ]);
+        $success = "Privilegio revocado exitosamente.";
     } catch (PDOException $e) {
-        $error = "Error al eliminar el grupo: " . $e->getMessage();
+        $error = "Error al eliminar el privilegio: " . $e->getMessage();
     }
 }
 
 // Obtener todos los grupos
 try {
-    $stmt = $pdo->query("SELECT G.idGrupo, G.nombreGrupo, G.descripcion, P.nombrePersonal 
-                         FROM GRUPO G 
-                         JOIN PERSONAL P ON G.idPersonal = P.idPersonal 
-                         ORDER BY G.idGrupo ASC");
+    $stmt = $pdo->query("SELECT idGrupo, nombreGrupo FROM GRUPO ORDER BY nombreGrupo ASC");
     $grupos = $stmt->fetchAll();
 } catch (PDOException $e) {
     echo "Error al obtener los grupos: " . $e->getMessage();
     exit();
 }
 
-// Obtener todas las personas para asignar a grupos
+// Obtener todos los privilegios
 try {
-    $stmt = $pdo->query("SELECT idPersonal, nombrePersonal FROM PERSONAL ORDER BY nombrePersonal ASC");
-    $personales = $stmt->fetchAll();
+    $stmt = $pdo->query("SELECT idPrivilegio, nombrePrivilegio FROM PRIVILEGIOS ORDER BY nombrePrivilegio ASC");
+    $privilegios = $stmt->fetchAll();
 } catch (PDOException $e) {
-    echo "Error al obtener las personas: " . $e->getMessage();
+    echo "Error al obtener los privilegios: " . $e->getMessage();
     exit();
 }
 
-// Si la acción es editar, obtener los datos del grupo
-$grupoEdit = null;
-if ($action === 'edit' && $idGrupo > 0) {
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM GRUPO WHERE idGrupo = :idGrupo");
-        $stmt->execute(['idGrupo' => $idGrupo]);
-        $grupoEdit = $stmt->fetch();
-        if (!$grupoEdit) {
-            $error = "Grupo no encontrado.";
-        }
-    } catch (PDOException $e) {
-        echo "Error al obtener el grupo: " . $e->getMessage();
-        exit();
-    }
+// Obtener todas las asignaciones actuales
+try {
+    $stmt = $pdo->query("
+        SELECT R.idGrupo, R.idPrivilegio, G.nombreGrupo, P.nombrePrivilegio
+        FROM R_GRUPO_PRIVILEGIOS R
+        JOIN GRUPO G ON R.idGrupo = G.idGrupo
+        JOIN PRIVILEGIOS P ON R.idPrivilegio = P.idPrivilegio
+        ORDER BY G.nombreGrupo, P.nombrePrivilegio ASC
+    ");
+    $asignaciones = $stmt->fetchAll();
+} catch (PDOException $e) {
+    echo "Error al obtener las asignaciones: " . $e->getMessage();
+    exit();
 }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Administrar Grupos - TotCloud</title>
+    <title>Asignar Privilegios - TotCloud</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -157,7 +103,7 @@ if ($action === 'edit' && $idGrupo > 0) {
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
         }
         h2 {
@@ -173,53 +119,45 @@ if ($action === 'edit' && $idGrupo > 0) {
             text-align: center;
             margin-bottom: 15px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
+        .assign-section, .current-assignments {
+            margin-bottom: 40px;
         }
-        table, th, td {
-            border: 1px solid #cbd5e0;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #edf2f7;
-        }
-        .actions a {
-            margin-right: 10px;
-            text-decoration: none;
-            color: #3182ce;
-        }
-        .actions a:hover {
-            text-decoration: underline;
-        }
-        .form-container {
-            background-color: #fff;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-container form input[type="text"],
-        .form-container form select {
-            width: 100%;
+        .assign-section form select {
+            width: 45%;
             padding: 10px;
-            margin-bottom: 15px;
+            margin-right: 5%;
             border: 1px solid #cbd5e0;
             border-radius: 4px;
         }
-        .form-container form input[type="submit"] {
-            background-color: #38a169;
+        .assign-section form input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #3182ce;
             color: white;
-            padding: 10px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-        .form-container form input[type="submit"]:hover {
-            background-color: #2f855a;
+        .assign-section form input[type="submit"]:hover {
+            background-color: #2b6cb0;
+        }
+        .current-assignments table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .current-assignments th, .current-assignments td {
+            border: 1px solid #cbd5e0;
+            padding: 12px;
+            text-align: left;
+        }
+        .current-assignments th {
+            background-color: #edf2f7;
+        }
+        .current-assignments a {
+            color: #e53e3e;
+            text-decoration: none;
+        }
+        .current-assignments a:hover {
+            text-decoration: underline;
         }
         .back-link {
             display: block;
@@ -235,7 +173,7 @@ if ($action === 'edit' && $idGrupo > 0) {
 <body>
     <div class="container">
         <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
-        <h2>Administrar Grupos</h2>
+        <h2>Asignar Privilegios a Grupos</h2>
         
         <?php if ($error): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
@@ -245,74 +183,47 @@ if ($action === 'edit' && $idGrupo > 0) {
             <div class="success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
         
-        <!-- Tabla de Grupos -->
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Nombre del Grupo</th>
-                <th>Descripción</th>
-                <th>Personal Responsable</th>
-                <th>Acciones</th>
-            </tr>
-            <?php foreach ($grupos as $grupo): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($grupo['idGrupo']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombreGrupo']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['descripcion']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombrePersonal']); ?></td>
-                    <td class="actions">
-                        <a href="AdministrarGrupos.php?action=edit&id=<?php echo $grupo['idGrupo']; ?>">Editar</a>
-                        <a href="AdministrarGrupos.php?action=delete&id=<?php echo $grupo['idGrupo']; ?>" onclick="return confirm('¿Estás seguro de eliminar este grupo?');">Eliminar</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
+        <!-- Sección para Asignar Privilegios -->
+        <div class="assign-section">
+            <h3>Asignar Privilegio</h3>
+            <form action="AsignarPrivilegios.php?action=assign" method="GET">
+                <select name="idGrupo" required>
+                    <option value="">Selecciona un grupo</option>
+                    <?php foreach ($grupos as $grupo): ?>
+                        <option value="<?php echo $grupo['idGrupo']; ?>"><?php echo htmlspecialchars($grupo['nombreGrupo']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <select name="idPrivilegio" required>
+                    <option value="">Selecciona un privilegio</option>
+                    <?php foreach ($privilegios as $privilegio): ?>
+                        <option value="<?php echo $privilegio['idPrivilegio']; ?>"><?php echo htmlspecialchars($privilegio['nombrePrivilegio']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <input type="submit" value="Asignar Privilegio">
+            </form>
+        </div>
         
-        <!-- Formulario para Agregar o Editar Grupos -->
-        <div class="form-container">
-            <?php if ($action === 'edit' && $grupoEdit): ?>
-                <h3>Editar Grupo</h3>
-                <form action="AdministrarGrupos.php?action=edit&id=<?php echo $idGrupo; ?>" method="POST">
-                    <label for="nombreGrupo">Nombre del Grupo:</label>
-                    <input type="text" id="nombreGrupo" name="nombreGrupo" value="<?php echo htmlspecialchars($grupoEdit['nombreGrupo']); ?>" required>
-                    
-                    <label for="descripcion">Descripción:</label>
-                    <input type="text" id="descripcion" name="descripcion" value="<?php echo htmlspecialchars($grupoEdit['descripcion']); ?>">
-                    
-                    <label for="idPersonal">Personal Responsable:</label>
-                    <select id="idPersonal" name="idPersonal" required>
-                        <option value="">Selecciona una persona</option>
-                        <?php foreach ($personales as $personal): ?>
-                            <option value="<?php echo $personal['idPersonal']; ?>" <?php echo ($grupoEdit['idPersonal'] == $personal['idPersonal']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($personal['nombrePersonal']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    
-                    <input type="submit" value="Actualizar Grupo">
-                </form>
-            <?php else: ?>
-                <h3>Agregar Nuevo Grupo</h3>
-                <form action="AdministrarGrupos.php?action=add" method="POST">
-                    <label for="nombreGrupo">Nombre del Grupo:</label>
-                    <input type="text" id="nombreGrupo" name="nombreGrupo" required>
-                    
-                    <label for="descripcion">Descripción:</label>
-                    <input type="text" id="descripcion" name="descripcion">
-                    
-                    <label for="idPersonal">Personal Responsable:</label>
-                    <select id="idPersonal" name="idPersonal" required>
-                        <option value="">Selecciona una persona</option>
-                        <?php foreach ($personales as $personal): ?>
-                            <option value="<?php echo $personal['idPersonal']; ?>">
-                                <?php echo htmlspecialchars($personal['nombrePersonal']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    
-                    <input type="submit" value="Agregar Grupo">
-                </form>
-            <?php endif; ?>
+        <!-- Sección de Asignaciones Actuales -->
+        <div class="current-assignments">
+            <h3>Privilegios Asignados</h3>
+            <table>
+                <tr>
+                    <th>Grupo</th>
+                    <th>Privilegio</th>
+                    <th>Acciones</th>
+                </tr>
+                <?php foreach ($asignaciones as $asignacion): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($asignacion['nombreGrupo']); ?></td>
+                        <td><?php echo htmlspecialchars($asignacion['nombrePrivilegio']); ?></td>
+                        <td>
+                            <a href="AsignarPrivilegios.php?action=remove&idGrupo=<?php echo $asignacion['idGrupo']; ?>&idPrivilegio=<?php echo $asignacion['idPrivilegio']; ?>" onclick="return confirm('¿Estás seguro de eliminar este privilegio?');">Eliminar</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
         </div>
     </div>
 </body>
