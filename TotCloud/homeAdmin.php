@@ -233,10 +233,10 @@ try {
         <h2>Bienvenido, <?php echo htmlspecialchars($empleado['nombre'] . ' ' . $empleado['apellido']); ?>!</h2>
         <p>Selecciona una opción para continuar:</p>
         <div class="options">
-            <a href="paas.php">
+            <a href="paasAdmin.php">
                 <i class="fas fa-cloud icon"></i> PAAS
             </a>
-            <a href="saas.php">
+            <a href="saasAdmin.php">
                 <i class="fas fa-server icon"></i> SAAS
             </a>
         </div>

@@ -32,10 +32,10 @@ INSERT INTO PRIVILEGIOS (idPrivilegio, nombrePrivilegio, descripcion, idPersonal
 (6, 'VIEW_ANALYTICS', 'Privilege to view analytics data', 4);
 
 -- 6. ETAPA
-INSERT INTO ETAPA (idEtapa, nombreEtapa, estado, idPersonal) VALUES
-(4, 'Integraci贸n', 'en_proceso', 4),
-(5, 'Testing', 'completada', 4),
-(6, 'Deploy', 'en_proceso', 4);
+INSERT INTO ETAPA (idEtapa, nombreEtapa, descripcion, idPersonal) VALUES
+(4, 'En Pruebas', 'a', 4),
+(5, 'Disponible', 'a', 4),
+(6, 'No Disponible', 'a', 4);
 
 -- 7. SERVICIO
 INSERT INTO SERVICIO (idServicio, tipoServicio, descripcion, idEtapa) VALUES
@@ -62,22 +62,22 @@ INSERT INTO VIDEO_CONFERENCE (idVideoConference) VALUES
 (6);
 
 -- 12. CS_CONFIG
-INSERT INTO CS_CONFIG (idCSConfig, almacenamiento, idCloudStorage) VALUES
-(4, 3000, 4),
-(5, 4000, 5),
-(6, 5000, 6);
+INSERT INTO CS_CONFIG (idCSConfig, nombreCS, almacenamiento, idCloudStorage, idPersona) VALUES
+(4, 'Drive', 3000, 4, 4),
+(5, 'SharePoint', 4000, 5, 4),
+(6, 'OneDrive', 5000, 6, 4);
 
 -- 13. DB_CONFIG
-INSERT INTO DB_CONFIG (idDBConfig, nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase) VALUES
-(4, 'marketing_db', 'MariaDB', 7, 150, 4, 3307, '192.168.1.13', 4),
-(5, 'hr_db', 'Oracle', 3, 75, 2, 1521, '192.168.1.14', 5),
-(6, 'it_db', 'SQL Server', 6, 300, 6, 1433, '192.168.1.15', 6);
+INSERT INTO DB_CONFIG (idDBConfig, nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase, idPersona) VALUES
+(4, 'marketing_db', 'MariaDB', 7, 150, 4, 3307, '192.168.1.13', 4, 4),
+(5, 'hr_db', 'Oracle', 3, 75, 2, 1521, '192.168.1.14', 5, 4),
+(6, 'it_db', 'SQL Server', 6, 300, 6, 1433, '192.168.1.15', 6, 4);
 
 -- 14. VC_CONFIG
-INSERT INTO VC_CONFIG (idVCConfig, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference) VALUES
-(4, 'UltraHD', 10000, 1000, 'German', 4),
-(5, 'HD', 8000, 800, 'Italian', 5),
-(6, 'FullHD', 9000, 900, 'Japanese', 6);
+INSERT INTO VC_CONFIG (idVCConfig, nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) VALUES
+(4, 'Zoom', 'UltraHD', 10000, 1000, 'German', 4, 4),
+(5, 'Discord', 'HD', 8000, 800, 'Italian', 5, 4),
+(6, 'Meet', 'FullHD', 9000, 900, 'Japanese', 6, 4);
 
 -- 15. R_PERSONA_SERVICIO
 INSERT INTO R_PERSONA_SERVICIO (idServicio, idPersona) VALUES

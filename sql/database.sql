@@ -21,7 +21,7 @@ CREATE TABLE PERSONA (
 CREATE TABLE PERSONAL ( 
     idPersonal INT(8) PRIMARY KEY, 
     nombrePersonal VARCHAR(64) NOT NULL UNIQUE,
-    contrasenya VARCHAR(255) NOT NULL,
+    contrasenya VARCHAR(256) NOT NULL,
     FOREIGN KEY (idPersonal) REFERENCES PERSONA(idPersona) 
 ); 
 
@@ -38,7 +38,7 @@ CREATE TABLE GRUPO (
 CREATE TABLE USUARIO (
  	idUsuario INT(8) PRIMARY KEY, 
     nombreUsuario VARCHAR(64) NOT NULL UNIQUE, 
-    contrasenya VARCHAR(255) NOT NULL,
+    contrasenya VARCHAR(256) NOT NULL,
     idOrganizacion INT(8) NOT NULL, 
     idGrupo INT(8), 
     FOREIGN KEY (idGrupo) REFERENCES GRUPO(idGrupo), 
@@ -50,7 +50,7 @@ CREATE TABLE USUARIO (
 CREATE TABLE PRIVILEGIOS ( 
     idPrivilegio INT(8) PRIMARY KEY, 
     nombrePrivilegio VARCHAR(64) NOT NULL, 
-    descripcion VARCHAR(255), 
+    descripcion VARCHAR(256), 
     idPersonal INT(8) NOT NULL, 
     FOREIGN KEY (idPersonal) REFERENCES PERSONAL(idPersonal) 
 ); 
@@ -59,42 +59,45 @@ CREATE TABLE PRIVILEGIOS (
 CREATE TABLE ETAPA ( 
     idEtapa INT(8) PRIMARY KEY, 
     nombreEtapa VARCHAR(64) NOT NULL, 
-    estado VARCHAR(32) NOT NULL, 
+    descripcion VARCHAR(256) NOT NULL, 
     idPersonal INT(8) NOT NULL, 
     FOREIGN KEY (idPersonal) REFERENCES PERSONAL(idPersonal) 
 ); 
 
 
 CREATE TABLE SERVICIO ( 
-    idServicio INT PRIMARY KEY NOT NULL, 
-    tipoServicio VARCHAR(255) NOT NULL, 
-    descripcion VARCHAR(255), 
+    idServicio INT(8) PRIMARY KEY, 
+    tipoServicio VARCHAR(256) NOT NULL, 
+    descripcion VARCHAR(256), 
     idEtapa INT NOT NULL, 
     FOREIGN KEY (idEtapa) REFERENCES ETAPA(idEtapa) 
 ); 
 
 
 CREATE TABLE CLOUD_STORAGE ( 
-    idCloudStorage INT(8) PRIMARY KEY, 
+    idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY, 
     limiteSubida INT(16) NOT NULL, 
     velocidad INT(16) NOT NULL, latencia INT(16) NOT NULL 
 ); 
 
 
 CREATE TABLE CS_CONFIG ( 
-    idCSConfig INT(8) PRIMARY KEY, 
+    idCSConfig INT(8) AUTO_INCREMENT PRIMARY KEY,
+    nombreCS VARCHAR(64) NOT NULL,
     almacenamiento INT(16) NOT NULL, 
-    idCloudStorage INT(8) NOT NULL, 
-    FOREIGN KEY (idCloudStorage) REFERENCES CLOUD_STORAGE(idCloudStorage)
+    idCloudStorage INT(8) NOT NULL,
+    idPersona INT(8) NOT NULL,
+    FOREIGN KEY (idCloudStorage) REFERENCES CLOUD_STORAGE(idCloudStorage),
+    FOREIGN KEY (idPersona) REFERENCES PERSONA(idPersona) 
 ); 
 
 CREATE TABLE DATA_BASE ( 
-    idDataBase INT(8) PRIMARY KEY 
+    idDataBase INT(8) AUTO_INCREMENT PRIMARY KEY
 ); 
 
 
 CREATE TABLE DB_CONFIG ( 
-    idDBConfig INT(8) PRIMARY KEY, 
+    idDBConfig INT(8) AUTO_INCREMENT PRIMARY KEY, 
     nombreDB VARCHAR(64) NOT NULL, 
     motor VARCHAR(64) NOT NULL, 
     usuarios INT(16) NOT NULL, 
@@ -103,23 +106,28 @@ CREATE TABLE DB_CONFIG (
     puerto INT(8) NOT NULL, 
     direccionIP VARCHAR(16) NOT NULL, 
     idDataBase INT(8) NOT NULL, 
-    FOREIGN KEY (idDataBase) REFERENCES DATA_BASE(idDataBase) 
+    idPersona INT(8) NOT NULL,
+    FOREIGN KEY (idDataBase) REFERENCES DATA_BASE(idDataBase),
+    FOREIGN KEY (idPersona) REFERENCES PERSONA(idPersona) 
 ); 
 
 
 CREATE TABLE VIDEO_CONFERENCE ( 
-idVideoConference INT(8) PRIMARY KEY 
+    idVideoConference INT(8) AUTO_INCREMENT PRIMARY KEY 
 ); 
 
 
 CREATE TABLE VC_CONFIG ( 
-    idVCConfig INT(8) PRIMARY KEY, 
+    idVCConfig INT(8) AUTO_INCREMENT PRIMARY KEY,
+    nombreVC VARCHAR(64) NOT NULL,
     calidad VARCHAR(8) NOT NULL,
     anchoBanda INT(16) NOT NULL, 
     maxParticipantes INT(8) NOT NULL, 
     idioma VARCHAR(64) NOT NULL, 
     idVideoConference INT(8) NOT NULL,
-    FOREIGN KEY (idVideoConference) REFERENCES VIDEO_CONFERENCE(idVideoConference)
+    idPersona INT(8) NOT NULL,
+    FOREIGN KEY (idVideoConference) REFERENCES VIDEO_CONFERENCE(idVideoConference),
+    FOREIGN KEY (idPersona) REFERENCES PERSONA(idPersona) 
 ); 
 
 

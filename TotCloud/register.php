@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             // Autenticación exitosa después del registro
-            $_SESSION['usuario_id'] = $pdo->lastInsertId();
+            $_SESSION['usuario_id'] = $idUsuario;
             header('Location: home.php');
             exit();
         } catch (PDOException $e) {
