@@ -75,9 +75,9 @@ INSERT INTO DB_CONFIG (idDBConfig, nombreDB, motor, usuarios, almacenamiento, cp
 
 -- 14. VC_CONFIG
 INSERT INTO VC_CONFIG (idVCConfig, nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) VALUES
-(4, 'Zoom', 'UltraHD', 10000, 1000, 'German', 4, 4),
-(5, 'Discord', 'HD', 8000, 800, 'Italian', 5, 4),
-(6, 'Meet', 'FullHD', 9000, 900, 'Japanese', 6, 4);
+(4, 'Zoom', '480p', 10000, 1000, 'Deutsch', 4, 4),
+(5, 'Discord', '1080p', 8000, 800, 'Italian', 5, 4),
+(6, 'Meet', '720p', 9000, 900, 'English', 6, 4);
 
 -- 15. R_PERSONA_SERVICIO
 INSERT INTO R_PERSONA_SERVICIO (idServicio, idPersona) VALUES

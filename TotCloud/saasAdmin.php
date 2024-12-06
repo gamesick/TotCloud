@@ -123,7 +123,7 @@ if ($action === 'eliminarApp' && isset($_GET['idServicio'])) {
 }
 
 // Obtener lista de cloud storage
-$dbList = [];
+$csList = [];
 try {
     $stmt = $pdo->query("
         SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
@@ -131,13 +131,13 @@ try {
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
         ORDER BY CS_CONFIG.nombreCS ASC
     ");
-    $dbList = $stmt->fetchAll();
+    $csList = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }
 
 // Obtener lista de video conference
-$appList = [];
+$vcList = [];
 try {
     $stmt = $pdo->query("
         SELECT VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma
@@ -145,7 +145,7 @@ try {
         JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
         ORDER BY VC_CONFIG.nombreVC ASC
     ");
-    $appList = $stmt->fetchAll();
+    $vcList = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de aplicaciones: " . $e->getMessage();
 }
@@ -389,13 +389,13 @@ try {
                             <th>Nombre</th>
                             <th>Acciones</th>
                         </tr>
-                        <?php if (!empty($dbList)): ?>
-                            <?php foreach ($dbList as $dbItem): ?>
+                        <?php if (!empty($csList)): ?>
+                            <?php foreach ($csList as $csItem): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($dbItem['nombreCS']); ?></td>
+                                    <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
                                     <td class="actions">
-                                        <a href="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$dbItem['idCloudStorage']; ?>">Editar</a>
-                                        <a href="saasAdmin.php?action=eliminarCS&idCloudStorage=<?php echo (int)$dbItem['idCloudStorage']; ?>">Eliminar</a>
+                                        <a href="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
+                                        <a href="saasAdmin.php?action=eliminarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
                                         
                                     </td>
                                 </tr>
@@ -415,40 +415,46 @@ try {
                     <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
 
                     <label for="calidad">Calidad:</label>
-                    <input type="text" id="calidad" name="calidad" placeholder="HD" required>
+                    <select id="calidad" name="calidad">
+                        <option value="240p">240p</option>
+                        <option value="480p">480p</option>
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p</option>
+                        <option value="4k">4k</option>
+                    </select>
 
                     <label for="anchoBanda">Ancho de Banda:</label>
                     <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
 
-                    <label for="maxParticipantes">numero maximo de Participantes:</label>
+                    <label for="maxParticipantes">Número máximo de Participantes:</label>
                     <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
+                    
+                    <label for="idioma">Idioma:</label>
+                    <select id="idioma" name="idioma">
+                        <option value="Español">Español</option>
+                        <option value="English">English</option>
+                        <option value="Deutsch">Deutsch</option>
+                        <option value="Italian">Italian</option>
+                        <option value="French">French</option>
+                    </select>
 
-                    <label for="cpu">CPU (número de cores):</label>
-                    <input type="number" id="cpu" name="cpu" min="1" required>
-
-                    <label for="puerto">Puerto:</label>
-                    <input type="number" id="puerto" name="puerto" min="1" required>
-
-                    <label for="direccionIP">Dirección IP:</label>
-                    <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
-
-                    <input type="submit" value="Crear Aplicación">
+                    <input type="submit" value="Crear Video Conference">
                 </form>
 
                 <div class="service-list">
-                    <h4>Video Conference Disponibles</h4>
+                    <h4>Video Conference Configuradas</h4>
                     <table>
                         <tr>
                             <th>Nombre</th>
                             <th>Acciones</th>
                         </tr>
-                        <?php if (!empty($appList)): ?>
-                            <?php foreach ($appList as $appItem): ?>
+                        <?php if (!empty($vcList)): ?>
+                            <?php foreach ($vcList as $vcItem): ?>
                                 <tr>
-                                    <td><?php echo (int)$appItem['nombreVC']; ?></td>
+                                <td><?php echo htmlspecialchars($vcItem['nombreVC']); ?></td>
                                     <td class="actions">
-                                        <a href="saasAdmin.php?action=editarVC&idVideoConference=<?php echo (int)$appItem['idVideoConference']; ?>">Editar</a>
-                                        <a href="saasAdmin.php?action=eliminarVC&idVideoConference=<?php echo (int)$appItem['idVideoConference']; ?>">Eliminar</a>
+                                        <a href="saasAdmin.php?action=editarVC&idVideoConference=<?php echo (int)$vcItem['idVideoConference']; ?>">Editar</a>
+                                        <a href="saasAdmin.php?action=eliminarVC&idVideoConference=<?php echo (int)$vcItem['idVideoConference']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
