@@ -1,12 +1,12 @@
 <?php
-// saasAdmin.php
+// paasAdmin.php
 session_start();
 require 'config.php';
 
-// Obtener información del empleado desde la tabla PERSONAL
+// Obtener información del empleado desde la tabla PERSONAL incluyendo idPersona
 try {
     $stmt = $pdo->prepare('
-        SELECT nombre, apellido 
+        SELECT idPersona, nombre, apellido 
         FROM PERSONA 
         WHERE idPersona = :idPersonal
     ');
@@ -17,6 +17,9 @@ try {
         echo "Empleado no encontrado.";
         exit();
     }
+
+    $idPersona = $empleado['idPersona'];
+
 } catch (PDOException $e) {
     echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
@@ -42,12 +45,12 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Crear una nueva entrada en DATA_BASE
-            $pdo->exec("INSERT INTO DATA_BASE() VALUES()"); // Solo crea un idDataBase
+            $pdo->exec("INSERT INTO DATA_BASE() VALUES()"); // Solo crea un idDataBase autoincrementado
             $idDataBase = $pdo->lastInsertId();
 
             // Insertar configuración en DB_CONFIG
-            $stmt = $pdo->prepare("INSERT INTO DB_CONFIG (nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase) 
-                                   VALUES (:nombreDB, :motor, :usuarios, :almacenamiento, :cpu, :puerto, :direccionIP, :idDataBase)");
+            $stmt = $pdo->prepare("INSERT INTO DB_CONFIG (nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase, idPersona) 
+                                   VALUES (:nombreDB, :motor, :usuarios, :almacenamiento, :cpu, :puerto, :direccionIP, :idDataBase, :idPersona)");
             $stmt->execute([
                 'nombreDB' => $nombreDB,
                 'motor' => $motor,
@@ -56,7 +59,8 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => $idDataBase
+                'idDataBase' => $idDataBase,
+                'idPersona' => $idPersona
             ]);
 
             $success = "Base de datos creada exitosamente.";
@@ -84,41 +88,21 @@ if ($action === 'eliminarDB' && isset($_GET['idDataBase'])) {
     }
 }
 
-// Crear Aplicación (Servicio de tipo 'Aplicacion')
-if ($action === 'crearApp' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $appName = trim($_POST['appName']);
-    $idEtapa = intval($_POST['idEtapa']);
-    $descripcion = trim($_POST['descripcion']);
-
-    if (empty($appName) || $idEtapa <= 0) {
-        $error = "El nombre de la aplicación y la etapa son obligatorios.";
-    } else {
-        try {
-            // Insertar en SERVICIO tipoServicio='Aplicacion'
-            $stmt = $pdo->prepare("INSERT INTO SERVICIO (tipoServicio, descripcion, idEtapa) 
-                                   VALUES ('Aplicacion', :descripcion, :idEtapa)");
-            $stmt->execute([
-                'descripcion' => $descripcion,
-                'idEtapa' => $idEtapa
-            ]);
-
-            $success = "Aplicación creada exitosamente.";
-        } catch (PDOException $e) {
-            $error = "Error al crear la aplicación: " . $e->getMessage();
-        }
-    }
-}
-
-// Eliminar Aplicación
-if ($action === 'eliminarApp' && isset($_GET['idServicio'])) {
-    $idServicio = intval($_GET['idServicio']);
+// Editar Base de Datos
+if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
+    $idDB = intval($_GET['idDataBase']);
     try {
-        $stmt = $pdo->prepare("DELETE FROM SERVICIO WHERE idServicio = :idServicio AND tipoServicio='Aplicacion'");
-        $stmt->execute(['idServicio' => $idServicio]);
+        // Primero editar DB_CONFIG asociada
+        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
+        $stmt->execute(['idDataBase' => $idDB]);
 
-        $success = "Aplicación eliminada exitosamente.";
+        // Luego editar la entrada de DATA_BASE
+        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
+        $stmt->execute(['idDataBase' => $idDB]);
+
+        $success = "Base de datos editada exitosamente.";
     } catch (PDOException $e) {
-        $error = "Error al eliminar la aplicación: " . $e->getMessage();
+        $error = "Error al editar la base de datos: " . $e->getMessage();
     }
 }
 
@@ -126,7 +110,7 @@ if ($action === 'eliminarApp' && isset($_GET['idServicio'])) {
 $dbList = [];
 try {
     $stmt = $pdo->query("
-        SELECT DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor, DB_CONFIG.usuarios, DB_CONFIG.almacenamiento, DB_CONFIG.cpu, DB_CONFIG.puerto, DB_CONFIG.direccionIP
+        SELECT DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor 
         FROM DB_CONFIG
         JOIN DATA_BASE ON DB_CONFIG.idDataBase = DATA_BASE.idDataBase
         ORDER BY DB_CONFIG.nombreDB ASC
@@ -135,36 +119,12 @@ try {
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }
-
-// Obtener lista de aplicaciones (servicios tipo 'Aplicacion')
-$appList = [];
-try {
-    $stmt = $pdo->query("
-        SELECT S.idServicio, S.descripcion, E.nombreEtapa
-        FROM SERVICIO S
-        JOIN ETAPA E ON S.idEtapa = E.idEtapa
-        WHERE S.tipoServicio = 'Aplicacion'
-        ORDER BY S.idServicio ASC
-    ");
-    $appList = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $error = "Error al obtener la lista de aplicaciones: " . $e->getMessage();
-}
-
-// Obtener etapas para el dropdown en aplicaciones
-$etapas = [];
-try {
-    $stmt = $pdo->query("SELECT idEtapa, nombreEtapa FROM ETAPA ORDER BY idEtapa ASC");
-    $etapas = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $error = "Error al obtener etapas: " . $e->getMessage();
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Administración SAAS - TotCloud</title>
+    <title>Administración PAAS - TotCloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -343,6 +303,20 @@ try {
             text-decoration: underline;
         }
 
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3182ce;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+
         @media (min-width: 600px) {
             .sections {
                 flex-wrap: nowrap;
@@ -358,6 +332,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
+        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
         <h2>Administración de PAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios PAAS ofrecidos (Bases de Datos).</p>
 
@@ -373,12 +348,18 @@ try {
             <!-- Sección para manejo de Base de Datos -->
             <div class="section-card">
                 <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
-                <form action="saasAdmin.php?action=crearDB" method="POST">
+                <form action="paasAdmin.php?action=crearDB" method="POST">
                     <label for="nombreDB">Nombre de la Base de Datos:</label>
                     <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
 
-                    <label for="motor">Motor (MySQL, PostgreSQL...):</label>
-                    <input type="text" id="motor" name="motor" placeholder="MySQL" required>
+                    <label for="motor">Motor:</label>
+                    <select id="motor" name="motor" required>
+                        <option value="">-- Selecciona el Motor --</option>
+                        <option value="MySQL">MySQL</option>
+                        <option value="PostgreSQL">PostgreSQL</option>
+                        <option value="MariaDB">MariaDB</option>
+                        <option value="Oracle">Oracle</option>
+                    </select>
 
                     <label for="usuarios">Número de usuarios permitidos:</label>
                     <input type="number" id="usuarios" name="usuarios" min="1" required>
@@ -395,16 +376,6 @@ try {
                     <label for="direccionIP">Dirección IP:</label>
                     <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
 
-                    <label for="idEtapa">Etapa del Servicio:</label>
-                    <select id="idEtapa" name="idEtapa" required>
-                        <option value="">-- Selecciona Etapa --</option>
-                        <?php foreach ($etapas as $et): ?>
-                            <option value="<?php echo (int)$et['idEtapa']; ?>">
-                                <?php echo htmlspecialchars($et['nombreEtapa']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-
                     <input type="submit" value="Crear Base de Datos">
                 </form>
 
@@ -420,14 +391,13 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($dbItem['nombreDB']); ?></td>
                                     <td class="actions">
-                                        <a href="saasAdmin.php?action=editarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Editar</a>
-                                        <a href="saasAdmin.php?action=eliminarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Eliminar</a>
-                                        
+                                        <a href="paasAdmin.php?action=editarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Editar</a>
+                                        <a href="paasAdmin.php?action=eliminarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8">No hay bases de datos configuradas.</td></tr>
+                            <tr><td colspan="2">No hay bases de datos configuradas.</td></tr>
                         <?php endif; ?>
                     </table>
                 </div>

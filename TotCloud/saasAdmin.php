@@ -357,6 +357,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
+        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
         <h2>Administración de SAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios SAAS ofrecidos (Cloud Storage y Video Conference).</p>
 
@@ -416,6 +417,7 @@ try {
 
                     <label for="calidad">Calidad:</label>
                     <select id="calidad" name="calidad">
+                        <option value="">-- Selecciona la Calidad --</option>
                         <option value="240p">240p</option>
                         <option value="480p">480p</option>
                         <option value="720p">720p</option>
@@ -431,6 +433,7 @@ try {
                     
                     <label for="idioma">Idioma:</label>
                     <select id="idioma" name="idioma">
+                        <option value="">-- Selecciona un Idioma --</option>
                         <option value="Español">Español</option>
                         <option value="English">English</option>
                         <option value="Deutsch">Deutsch</option>
