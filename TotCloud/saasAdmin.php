@@ -6,7 +6,7 @@ require 'config.php';
 // Obtener información del empleado desde la tabla PERSONAL
 try {
     $stmt = $pdo->prepare('
-        SELECT nombre, apellido 
+        SELECT idPersona, nombre, apellido 
         FROM PERSONA 
         WHERE idPersona = :idPersonal
     ');
@@ -17,6 +17,9 @@ try {
         echo "Empleado no encontrado.";
         exit();
     }
+
+    $idPersona = $empleado['idPersona'];
+
 } catch (PDOException $e) {
     echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
@@ -27,98 +30,114 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
 
-// Crear Base de Datos
-if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombreDB = trim($_POST['nombreDB']);
-    $motor = trim($_POST['motor']);
-    $usuarios = intval($_POST['usuarios']);
+// Crear Cloud Storage
+if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
-    $cpu = intval($_POST['cpu']);
-    $puerto = intval($_POST['puerto']);
-    $direccionIP = trim($_POST['direccionIP']);
+    $limiteSubida = intval($_POST['limiteSubida']);
+    $velocidad = intval($_POST['velocidad']);
+    $latencia = intval($_POST['latencia']);
 
-    if (empty($nombreDB) || empty($motor) || $usuarios <= 0 || $almacenamiento <= 0 || $cpu <= 0 || $puerto <= 0 || empty($direccionIP)) {
-        $error = "Todos los campos de la Base de Datos son obligatorios y deben ser válidos.";
+    if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+        $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en DATA_BASE
-            $pdo->exec("INSERT INTO DATA_BASE() VALUES()"); // Solo crea un idDataBase
-            $idDataBase = $pdo->lastInsertId();
-
-            // Insertar configuración en DB_CONFIG
-            $stmt = $pdo->prepare("INSERT INTO DB_CONFIG (nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase) 
-                                   VALUES (:nombreDB, :motor, :usuarios, :almacenamiento, :cpu, :puerto, :direccionIP, :idDataBase)");
+            // Crear una nueva entrada en CLOUD_STORAGE
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia) 
+                                    VALUES(:limiteSubida, :velocidad, :latencia)");
             $stmt->execute([
-                'nombreDB' => $nombreDB,
-                'motor' => $motor,
-                'usuarios' => $usuarios,
+                'limiteSubida' => $limiteSubida,
+                'velocidad' => $velocidad,
+                'latencia' => $latencia
+            ]);                
+            $idCloudStorage = $pdo->lastInsertId();
+
+            // Insertar configuración en CS_CONFIG
+            $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
+                                    VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
+            $stmt->execute([
+                'nombreCS' => $nombreCS,
                 'almacenamiento' => $almacenamiento,
-                'cpu' => $cpu,
-                'puerto' => $puerto,
-                'direccionIP' => $direccionIP,
-                'idDataBase' => $idDataBase
+                'idCloudStorage' => $idCloudStorage,
+                'idPersona' => $idPersona
             ]);
 
-            $success = "Base de datos creada exitosamente.";
+            $success = "Cloud Storage creada exitosamente.";
         } catch (PDOException $e) {
-            $error = "Error al crear la base de datos: " . $e->getMessage();
+            $error = "Error al crear la cloud storage: " . $e->getMessage();
         }
     }
 }
 
-// Eliminar Base de Datos
-if ($action === 'eliminarDB' && isset($_GET['idDataBase'])) {
-    $idDB = intval($_GET['idDataBase']);
+// Eliminar Cloud Storage
+if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
+    $idDB = intval($_GET['idCloudStorage']);
     try {
-        // Primero eliminar DB_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
+        // Primero eliminar CS_CONFIG asociada
+        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCloudStorage = :idCloudStorage");
+        $stmt->execute(['idCloudStorage' => $idDB]);
 
-        // Luego eliminar la entrada de DATA_BASE
-        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
+        // Luego eliminar la entrada de CLOUD_STORAGE
+        $stmt = $pdo->prepare("DELETE FROM CLOUD_STORAGE WHERE idCloudStorage = :idCloudStorage");
+        $stmt->execute(['idCloudStorage' => $idDB]);
 
-        $success = "Base de datos eliminada exitosamente.";
+        $success = "Cloud Storage eliminada exitosamente.";
     } catch (PDOException $e) {
-        $error = "Error al eliminar la base de datos: " . $e->getMessage();
+        $error = "Error al eliminar la cloud storage: " . $e->getMessage();
     }
 }
 
-// Crear Aplicación (Servicio de tipo 'Aplicacion')
-if ($action === 'crearApp' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $appName = trim($_POST['appName']);
-    $idEtapa = intval($_POST['idEtapa']);
-    $descripcion = trim($_POST['descripcion']);
+// Crear Video Conference
+if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nombreVC = trim($_POST['nombreVC']);
+    $calidad = trim($_POST['calidad']);
+    $anchoBanda = intval($_POST['anchoBanda']);
+    $maxParticipantes = intval($_POST['maxParticipantes']);
+    $idioma = trim($_POST['idioma']);
 
-    if (empty($appName) || $idEtapa <= 0) {
-        $error = "El nombre de la aplicación y la etapa son obligatorios.";
+    if (empty($nombreVC) || empty($calidad) || $anchoBanda <= 0 || $maxParticipantes <= 0 || empty($idioma)) {
+        $error = "Todos los campos de la Video Conference son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Insertar en SERVICIO tipoServicio='Aplicacion'
-            $stmt = $pdo->prepare("INSERT INTO SERVICIO (tipoServicio, descripcion, idEtapa) 
-                                   VALUES ('Aplicacion', :descripcion, :idEtapa)");
+            // Crear una nueva entrada en VIDEO_CONFERENCE
+            $pdo->exec("INSERT INTO VIDEO_CONFERENCE() VALUES()"); // Solo crea un idVideoConference autoincrementado
+            $idVideoConference = $pdo->lastInsertId();
+
+            // Insertar configuración en VC_CONFIG
+            $stmt = $pdo->prepare("INSERT INTO VC_CONFIG (nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) 
+                                   VALUES (:nombreVC, :calidad, :anchoBanda, :maxParticipantes, :idioma, :idVideoConference, :idPersona)");
             $stmt->execute([
-                'descripcion' => $descripcion,
-                'idEtapa' => $idEtapa
+                'nombreVC' => $nombreVC,
+                'calidad' => $calidad,
+                'anchoBanda' => $anchoBanda,
+                'maxParticipantes' => $maxParticipantes,
+                'idioma' => $idioma,
+                'idVideoConference' => $idVideoConference,
+                'idPersona' => $idPersona
             ]);
 
-            $success = "Aplicación creada exitosamente.";
+            $success = "Video Conference creada exitosamente.";
         } catch (PDOException $e) {
-            $error = "Error al crear la aplicación: " . $e->getMessage();
+            $error = "Error al crear la video conference: " . $e->getMessage();
         }
     }
 }
 
-// Eliminar Aplicación
-if ($action === 'eliminarApp' && isset($_GET['idServicio'])) {
-    $idServicio = intval($_GET['idServicio']);
+// Eliminar Video Conference
+if ($action === 'eliminarVC' && isset($_GET['idVideoConference'])) {
+    $idVC = intval($_GET['idVideoConference']);
     try {
-        $stmt = $pdo->prepare("DELETE FROM SERVICIO WHERE idServicio = :idServicio AND tipoServicio='Aplicacion'");
-        $stmt->execute(['idServicio' => $idServicio]);
+        // Primero eliminar VC_CONFIG asociada
+        $stmt = $pdo->prepare("DELETE FROM VC_CONFIG WHERE idVideoConference = :idVideoConference");
+        $stmt->execute(['idVideoConference' => $idVC]);
 
-        $success = "Aplicación eliminada exitosamente.";
+        // Luego eliminar la entrada de VIDEO_CONFERENCE
+        $stmt = $pdo->prepare("DELETE FROM VIDEO_CONFERENCE WHERE idVideoConference = :idVideoConference");
+        $stmt->execute(['idVideoConference' => $idVC]);
+
+        $success = "Video Conference eliminada exitosamente.";
     } catch (PDOException $e) {
-        $error = "Error al eliminar la aplicación: " . $e->getMessage();
+        $error = "Error al eliminar la video conference: " . $e->getMessage();
     }
 }
 
@@ -379,6 +398,15 @@ try {
 
                     <label for="almacenamiento">Almacenamiento (MB):</label>
                     <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+
+                    <label for="limiteSubida">Límite de Subida (MB):</label>
+                    <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
+
+                    <label for="velocidad">Velocidad (MB/s):</label>
+                    <input type="number" id="velocidad" name="velocidad" min="1" required>
+
+                    <label for="latencia">Latencia (ms):</label>
+                    <input type="number" id="latencia" name="latencia" min="1" required>
 
                     <input type="submit" value="Crear Cloud Storage">
                 </form>
