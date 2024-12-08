@@ -1,5 +1,5 @@
 <?php
-// paas.php
+// paasBasic.php
 session_start();
 require 'config.php';
 
@@ -324,7 +324,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
-        <a href="home.php" class="back-link">← Volver al Inicio</a>
+        <a href="homeBasic.php" class="back-link">← Volver al Inicio</a>
         <h2>Servicios PAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios PAAS ofrecidos (Bases de Datos).</p>
 
@@ -337,63 +337,7 @@ try {
         <?php endif; ?>
 
         <div class="sections">
-            <!-- Sección para manejo de Base de Datos -->
-            <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
-                <form action="paas.php?action=crearDB" method="POST">
-                    <label for="nombreDB">Nombre de la Base de Datos:</label>
-                    <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
 
-                    <label for="motor">Motor:</label>
-                    <select id="motor" name="motor" required>
-                        <option value="">-- Selecciona el Motor --</option>
-                        <option value="MySQL">MySQL</option>
-                        <option value="PostgreSQL">PostgreSQL</option>
-                        <option value="MariaDB">MariaDB</option>
-                        <option value="Oracle">Oracle</option>
-                    </select>
-
-                    <label for="usuarios">Número de usuarios permitidos:</label>
-                    <input type="number" id="usuarios" name="usuarios" min="1" required>
-
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
-
-                    <label for="cpu">CPU (número de cores):</label>
-                    <input type="number" id="cpu" name="cpu" min="1" required>
-
-                    <label for="puerto">Puerto:</label>
-                    <input type="number" id="puerto" name="puerto" min="1" required>
-
-                    <label for="direccionIP">Dirección IP:</label>
-                    <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
-
-                    <input type="submit" value="Crear Base de Datos">
-                </form>
-
-                <div class="service-list">
-                    <h4>Bases de Datos Configuradas</h4>
-                    <table>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-                        <?php if (!empty($dbList)): ?>
-                            <?php foreach ($dbList as $dbItem): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($dbItem['nombreDB']); ?></td>
-                                    <td class="actions">
-                                        <a href="paas.php?action=editarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Editar</a>
-                                        <a href="paas.php?action=eliminarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Eliminar</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="2">No hay bases de datos configuradas.</td></tr>
-                        <?php endif; ?>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 </body>

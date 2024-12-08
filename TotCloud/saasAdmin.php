@@ -43,12 +43,13 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia) 
-                                    VALUES(:limiteSubida, :velocidad, :latencia)");
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia, idServicio) 
+                                    VALUES(:limiteSubida, :velocidad, :latencia, :idServicio)");
             $stmt->execute([
                 'limiteSubida' => $limiteSubida,
                 'velocidad' => $velocidad,
-                'latencia' => $latencia
+                'latencia' => $latencia,
+                'idServicio' => 5
             ]);                
             $idCloudStorage = $pdo->lastInsertId();
 
@@ -99,10 +100,6 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Todos los campos de la Video Conference son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en VIDEO_CONFERENCE
-            $pdo->exec("INSERT INTO VIDEO_CONFERENCE() VALUES()"); // Solo crea un idVideoConference autoincrementado
-            $idVideoConference = $pdo->lastInsertId();
-
             // Insertar configuración en VC_CONFIG
             $stmt = $pdo->prepare("INSERT INTO VC_CONFIG (nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) 
                                    VALUES (:nombreVC, :calidad, :anchoBanda, :maxParticipantes, :idioma, :idVideoConference, :idPersona)");
@@ -112,7 +109,7 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anchoBanda' => $anchoBanda,
                 'maxParticipantes' => $maxParticipantes,
                 'idioma' => $idioma,
-                'idVideoConference' => $idVideoConference,
+                'idVideoConference' => 1,
                 'idPersona' => $idPersona
             ]);
 
@@ -124,16 +121,12 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Eliminar Video Conference
-if ($action === 'eliminarVC' && isset($_GET['idVideoConference'])) {
-    $idVC = intval($_GET['idVideoConference']);
+if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
+    $idVC = intval($_GET['idVCConfig']);
     try {
         // Primero eliminar VC_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM VC_CONFIG WHERE idVideoConference = :idVideoConference");
-        $stmt->execute(['idVideoConference' => $idVC]);
-
-        // Luego eliminar la entrada de VIDEO_CONFERENCE
-        $stmt = $pdo->prepare("DELETE FROM VIDEO_CONFERENCE WHERE idVideoConference = :idVideoConference");
-        $stmt->execute(['idVideoConference' => $idVC]);
+        $stmt = $pdo->prepare("DELETE FROM VC_CONFIG WHERE idVCConfig = :idVCConfig");
+        $stmt->execute(['idVCConfig' => $idVC]);
 
         $success = "Video Conference eliminada exitosamente.";
     } catch (PDOException $e) {
@@ -159,7 +152,7 @@ try {
 $vcList = [];
 try {
     $stmt = $pdo->query("
-        SELECT VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma
+        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma
         FROM VC_CONFIG
         JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
         ORDER BY VC_CONFIG.nombreVC ASC
@@ -484,8 +477,8 @@ try {
                                 <tr>
                                 <td><?php echo htmlspecialchars($vcItem['nombreVC']); ?></td>
                                     <td class="actions">
-                                        <a href="saasAdmin.php?action=editarVC&idVideoConference=<?php echo (int)$vcItem['idVideoConference']; ?>">Editar</a>
-                                        <a href="saasAdmin.php?action=eliminarVC&idVideoConference=<?php echo (int)$vcItem['idVideoConference']; ?>">Eliminar</a>
+                                        <a href="saasAdmin.php?action=editarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Editar</a>
+                                        <a href="saasAdmin.php?action=eliminarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

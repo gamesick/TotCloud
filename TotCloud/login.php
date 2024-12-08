@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($nombre && $contrasenya) {
         try {
             // Intentar autenticar en la tabla USUARIO
-            $stmt = $pdo->prepare('SELECT idUsuario, contrasenya FROM USUARIO WHERE nombreUsuario = :nombreUsuario');
+            $stmt = $pdo->prepare('SELECT idUsuario, contrasenya, idGrupo FROM USUARIO WHERE nombreUsuario = :nombreUsuario');
             $stmt->execute(['nombreUsuario' => $nombre]);
             $usuario = $stmt->fetch();
 
@@ -20,8 +20,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (password_verify($contrasenya, $usuario['contrasenya'])) {
                     // Autenticación exitosa
                     $_SESSION['usuario_id'] = $usuario['idUsuario'];
-                    header('Location: home.php');
-                    exit();
+                    switch ($usuario['idGrupo']) {
+                        case NULL:
+                            header('Location: espera.php');
+                            exit();
+                        case 4:
+                            header('Location: home.php');
+                            exit();
+                        case 5:
+                            header('Location: homePro.php');
+                            exit();
+                        case 6:
+                            header('Location: homeBasic.php');
+                            exit();
+                    }
                 } else {
                     // Contraseña incorrecta
                     $error = 'Contraseña incorrecta.';

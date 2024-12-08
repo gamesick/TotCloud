@@ -1,5 +1,5 @@
 <?php
-// paas.php
+// paasPro.php
 session_start();
 require 'config.php';
 
@@ -324,7 +324,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
-        <a href="home.php" class="back-link">← Volver al Inicio</a>
+        <a href="homePro.php" class="back-link">← Volver al Inicio</a>
         <h2>Servicios PAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios PAAS ofrecidos (Bases de Datos).</p>
 
@@ -340,7 +340,7 @@ try {
             <!-- Sección para manejo de Base de Datos -->
             <div class="section-card">
                 <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
-                <form action="paas.php?action=crearDB" method="POST">
+                <form action="paasPro.php?action=crearDB" method="POST">
                     <label for="nombreDB">Nombre de la Base de Datos:</label>
                     <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
 
@@ -383,8 +383,8 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($dbItem['nombreDB']); ?></td>
                                     <td class="actions">
-                                        <a href="paas.php?action=editarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Editar</a>
-                                        <a href="paas.php?action=eliminarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Eliminar</a>
+                                        <a href="paasPro.php?action=editarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Editar</a>
+                                        <a href="paasPro.php?action=eliminarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

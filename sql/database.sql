@@ -69,7 +69,9 @@ CREATE TABLE SERVICIO (
     idServicio INT(8) PRIMARY KEY, 
     tipoServicio VARCHAR(256) NOT NULL, 
     descripcion VARCHAR(256), 
-    idEtapa INT NOT NULL, 
+    idEtapa INT(8) NOT NULL,
+    idPrivilegio INT(8) NOT NULL,
+    FOREIGN KEY (idPrivilegio) REFERENCES PRIVILEGIOS(idPrivilegio),
     FOREIGN KEY (idEtapa) REFERENCES ETAPA(idEtapa) 
 ); 
 
@@ -77,7 +79,9 @@ CREATE TABLE SERVICIO (
 CREATE TABLE CLOUD_STORAGE ( 
     idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY, 
     limiteSubida INT(16) NOT NULL, 
-    velocidad INT(16) NOT NULL, latencia INT(16) NOT NULL 
+    velocidad INT(16) NOT NULL, latencia INT(16) NOT NULL,
+    idServicio INT(8) NOT NULL,
+    FOREIGN KEY (idServicio) REFERENCES SERVICIO(idServicio)
 ); 
 
 
@@ -92,7 +96,9 @@ CREATE TABLE CS_CONFIG (
 ); 
 
 CREATE TABLE DATA_BASE ( 
-    idDataBase INT(8) AUTO_INCREMENT PRIMARY KEY
+    idDataBase INT(8) AUTO_INCREMENT PRIMARY KEY,
+    idServicio INT(8) NOT NULL,
+    FOREIGN KEY (idServicio) REFERENCES SERVICIO(idServicio)
 ); 
 
 
@@ -113,7 +119,9 @@ CREATE TABLE DB_CONFIG (
 
 
 CREATE TABLE VIDEO_CONFERENCE ( 
-    idVideoConference INT(8) AUTO_INCREMENT PRIMARY KEY 
+    idVideoConference INT(8) AUTO_INCREMENT PRIMARY KEY,
+    idServicio INT(8) NOT NULL,
+    FOREIGN KEY (idServicio) REFERENCES SERVICIO(idServicio)
 ); 
 
 
@@ -138,8 +146,6 @@ CREATE TABLE R_PERSONA_SERVICIO (
     FOREIGN KEY (idServicio) REFERENCES SERVICIO(idServicio), 
     FOREIGN KEY (idPersona) REFERENCES PERSONA(idPersona)
 ); 
-
-
 
 
 CREATE TABLE R_GRUPO_PRIVILEGIOS ( 

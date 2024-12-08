@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Autenticación exitosa después del registro
             $_SESSION['usuario_id'] = $idUsuario;
-            header('Location: home.php');
+            header('Location: espera.php');
             exit();
         } catch (PDOException $e) {
             // Manejo de errores (por ejemplo, nombre de usuario duplicado)

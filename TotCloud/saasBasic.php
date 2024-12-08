@@ -1,5 +1,5 @@
 <?php
-// saas.php
+// saasBasic.php
 session_start();
 require 'config.php';
 
@@ -369,7 +369,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
-        <a href="home.php" class="back-link">← Volver al Inicio</a>
+        <a href="homeBasic.php" class="back-link">← Volver al Inicio</a>
         <h2>Servicios SAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios SAAS ofrecidos (Cloud Storage y Video Conference).</p>
 
@@ -382,58 +382,11 @@ try {
         <?php endif; ?>
 
         <div class="sections">
-
-            <!-- Sección para manejo de Cloud Storage -->
-            <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Cloud Storage</h3>
-                <form action="saas.php?action=crearCS" method="POST">
-                    <label for="nombreCS">Nombre de la Cloud Storage:</label>
-                    <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
-
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
-
-                    <label for="limiteSubida">Límite de Subida (MB):</label>
-                    <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
-
-                    <label for="velocidad">Velocidad (MB/s):</label>
-                    <input type="number" id="velocidad" name="velocidad" min="1" required>
-
-                    <label for="latencia">Latencia (ms):</label>
-                    <input type="number" id="latencia" name="latencia" min="1" required>
-
-                    <input type="submit" value="Crear Cloud Storage">
-                </form>
-
-                <div class="service-list">
-                    <h4>Cloud Storage Configuradas</h4>
-                    <table>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-                        <?php if (!empty($csList)): ?>
-                            <?php foreach ($csList as $csItem): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
-                                    <td class="actions">
-                                        <a href="saas.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
-                                        <a href="saas.php?action=eliminarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
-                                        
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="8">No hay bases de datos configuradas.</td></tr>
-                        <?php endif; ?>
-                    </table>
-                </div>
-            </div>
-                            
+        
             <!-- Sección para manejo de Video Conference -->
             <div class="section-card">
                 <h3><i class="fas fa-cogs"></i> Configuración de Video Conference</h3>
-                <form action="saas.php?action=crearVC" method="POST">
+                <form action="saasBasic.php?action=crearVC" method="POST">
                     <label for="nombreVC">Nombre de la Video Conference:</label>
                     <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
 
@@ -478,8 +431,8 @@ try {
                                 <tr>
                                 <td><?php echo htmlspecialchars($vcItem['nombreVC']); ?></td>
                                     <td class="actions">
-                                        <a href="saas.php?action=editarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Editar</a>
-                                        <a href="saas.php?action=eliminarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Eliminar</a>
+                                        <a href="saasBasic.php?action=editarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Editar</a>
+                                        <a href="saasBasic.php?action=eliminarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

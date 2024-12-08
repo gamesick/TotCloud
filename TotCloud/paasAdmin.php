@@ -44,10 +44,6 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Todos los campos de la Base de Datos son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en DATA_BASE
-            $pdo->exec("INSERT INTO DATA_BASE() VALUES()"); // Solo crea un idDataBase autoincrementado
-            $idDataBase = $pdo->lastInsertId();
-
             // Insertar configuración en DB_CONFIG
             $stmt = $pdo->prepare("INSERT INTO DB_CONFIG (nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase, idPersona) 
                                    VALUES (:nombreDB, :motor, :usuarios, :almacenamiento, :cpu, :puerto, :direccionIP, :idDataBase, :idPersona)");
@@ -59,7 +55,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => $idDataBase,
+                'idDataBase' => 1,
                 'idPersona' => $idPersona
             ]);
 
@@ -71,16 +67,12 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Eliminar Base de Datos
-if ($action === 'eliminarDB' && isset($_GET['idDataBase'])) {
-    $idDB = intval($_GET['idDataBase']);
+if ($action === 'eliminarDB' && isset($_GET['idDBConfig'])) {
+    $idDB = intval($_GET['idDBConfig']);
     try {
         // Primero eliminar DB_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        // Luego eliminar la entrada de DATA_BASE
-        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
+        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDBConfig = :idDBConfig");
+        $stmt->execute(['idDBConfig' => $idDB]);
 
         $success = "Base de datos eliminada exitosamente.";
     } catch (PDOException $e) {
@@ -110,7 +102,7 @@ if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
 $dbList = [];
 try {
     $stmt = $pdo->query("
-        SELECT DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor 
+        SELECT DB_CONFIG.idDBConfig, DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor 
         FROM DB_CONFIG
         JOIN DATA_BASE ON DB_CONFIG.idDataBase = DATA_BASE.idDataBase
         ORDER BY DB_CONFIG.nombreDB ASC
@@ -391,8 +383,8 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($dbItem['nombreDB']); ?></td>
                                     <td class="actions">
-                                        <a href="paasAdmin.php?action=editarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Editar</a>
-                                        <a href="paasAdmin.php?action=eliminarDB&idDataBase=<?php echo (int)$dbItem['idDataBase']; ?>">Eliminar</a>
+                                        <a href="paasAdmin.php?action=editarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Editar</a>
+                                        <a href="paasAdmin.php?action=eliminarDB&idDBConfig=<?php echo (int)$dbItem['idDBConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
