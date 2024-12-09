@@ -43,9 +43,10 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia) 
-                                    VALUES(:limiteSubida, :velocidad, :latencia)");
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(nombreCS, limiteSubida, velocidad, latencia) 
+                                    VALUES(:nombreCS, :limiteSubida, :velocidad, :latencia)");
             $stmt->execute([
+                'nombreCS' => $nombreCS,
                 'limiteSubida' => $limiteSubida,
                 'velocidad' => $velocidad,
                 'latencia' => $latencia

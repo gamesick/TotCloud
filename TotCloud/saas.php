@@ -148,7 +148,7 @@ try {
 // Obtener etapas para el dropdown en aplicaciones
 $cloudstorage = [];
 try {
-    $stmt = $pdo->query("SELECT idCloudStorage FROM CLOUD_STORAGE ORDER BY idCloudStorage ASC");
+    $stmt = $pdo->query("SELECT idCloudStorage, nombreCS FROM CLOUD_STORAGE ORDER BY idCloudStorage ASC");
     $cloudstorage = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Error al obtener etapas: " . $e->getMessage();
@@ -381,7 +381,7 @@ try {
                         <option value="">Selecciona una Cloud Storage</option>
                         <?php foreach ($cloudstorage as $et): ?>
                             <option value="<?php echo (int)$et['idCloudStorage']; ?>">
-                                <?php echo htmlspecialchars($et['idCloudStorage']); ?>
+                                <?php echo htmlspecialchars($et['nombreCS']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
