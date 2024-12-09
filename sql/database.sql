@@ -77,7 +77,8 @@ CREATE TABLE SERVICIO (
 
 
 CREATE TABLE CLOUD_STORAGE ( 
-    idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY, 
+    idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY,
+    nombreCS VARCHAR(64) NOT NULL,
     limiteSubida INT(16) NOT NULL, 
     velocidad INT(16) NOT NULL, latencia INT(16) NOT NULL,
     FOREIGN KEY (idCloudStorage) REFERENCES SERVICIO(idServicio)

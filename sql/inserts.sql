@@ -47,9 +47,9 @@ INSERT INTO SERVICIO (idServicio, tipoServicio, descripcion, idEtapa, idPrivileg
 
 -- 9. CLOUD_STORAGE
 INSERT INTO CLOUD_STORAGE (idCloudStorage, limiteSubida, velocidad, latencia) VALUES
-(5, 3000, 600, 5),
-(6, 4000, 800, 8),
-(7, 5000, 1000, 3);
+(5, 'Drive', 3000, 600, 5),
+(6, 'SharePoint', 4000, 800, 8),
+(7, 'OneDrive', 5000, 1000, 3);
 
 -- 10. DATA_BASE
 INSERT INTO DATA_BASE (idDataBase) VALUES
