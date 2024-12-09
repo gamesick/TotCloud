@@ -80,21 +80,52 @@ if ($action === 'eliminarDB' && isset($_GET['idDBConfig'])) {
     }
 }
 
-// Editar Base de Datos
-if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
-    $idDB = intval($_GET['idDataBase']);
+// Editar Base de Datos - Mostrar datos (GET)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
     try {
-        // Primero editar DB_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        // Luego editar la entrada de DATA_BASE
-        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        $success = "Base de datos editada exitosamente.";
+        // Obtener datos actuales de la DB_CONFIG
+        $stmt = $pdo->prepare("SELECT * FROM DB_CONFIG WHERE idDBConfig = :idDBConfig");
+        $stmt->execute(['idDBConfig' => $idDBConfig]);
+        $dbToEdit = $stmt->fetch();
     } catch (PDOException $e) {
-        $error = "Error al editar la base de datos: " . $e->getMessage();
+        $error = "Error al obtener la base de datos: " . $e->getMessage();
+    }
+}
+
+// Editar Base de Datos (UPDATE)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
+    $nombreDB = trim($_POST['nombreDB']);
+    $motor = trim($_POST['motor']);
+    $usuarios = intval($_POST['usuarios']);
+    $almacenamiento = intval($_POST['almacenamiento']);
+    $cpu = intval($_POST['cpu']);
+    $puerto = intval($_POST['puerto']);
+    $direccionIP = trim($_POST['direccionIP']);
+
+    if (empty($nombreDB) || empty($motor) || $usuarios <= 0 || $almacenamiento <= 0 || $cpu <= 0 || $puerto <= 0 || empty($direccionIP)) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE DB_CONFIG SET nombreDB=:nombreDB, motor=:motor, usuarios=:usuarios, almacenamiento=:almacenamiento, cpu=:cpu, puerto=:puerto, direccionIP=:direccionIP WHERE idDBConfig=:idDBConfig");
+            $stmt->execute([
+                'nombreDB' => $nombreDB,
+                'motor' => $motor,
+                'usuarios' => $usuarios,
+                'almacenamiento' => $almacenamiento,
+                'cpu' => $cpu,
+                'puerto' => $puerto,
+                'direccionIP' => $direccionIP,
+                'idDBConfig' => $idDBConfig
+            ]);
+
+            $success = "Base de datos actualizada exitosamente.";
+            $action = '';
+            $dbToEdit = null; // Volver al modo normal (sin edición)
+        } catch (PDOException $e) {
+            $error = "Error al actualizar la base de datos: " . $e->getMessage();
+        }
     }
 }
 

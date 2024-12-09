@@ -80,21 +80,52 @@ if ($action === 'eliminarDB' && isset($_GET['idDBConfig'])) {
     }
 }
 
-// Editar Base de Datos
-if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
-    $idDB = intval($_GET['idDataBase']);
+// Editar Base de Datos - Mostrar datos (GET)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
     try {
-        // Primero editar DB_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        // Luego editar la entrada de DATA_BASE
-        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        $success = "Base de datos editada exitosamente.";
+        // Obtener datos actuales de la DB_CONFIG
+        $stmt = $pdo->prepare("SELECT * FROM DB_CONFIG WHERE idDBConfig = :idDBConfig");
+        $stmt->execute(['idDBConfig' => $idDBConfig]);
+        $dbToEdit = $stmt->fetch();
     } catch (PDOException $e) {
-        $error = "Error al editar la base de datos: " . $e->getMessage();
+        $error = "Error al obtener la base de datos: " . $e->getMessage();
+    }
+}
+
+// Editar Base de Datos (UPDATE)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
+    $nombreDB = trim($_POST['nombreDB']);
+    $motor = trim($_POST['motor']);
+    $usuarios = intval($_POST['usuarios']);
+    $almacenamiento = intval($_POST['almacenamiento']);
+    $cpu = intval($_POST['cpu']);
+    $puerto = intval($_POST['puerto']);
+    $direccionIP = trim($_POST['direccionIP']);
+
+    if (empty($nombreDB) || empty($motor) || $usuarios <= 0 || $almacenamiento <= 0 || $cpu <= 0 || $puerto <= 0 || empty($direccionIP)) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE DB_CONFIG SET nombreDB=:nombreDB, motor=:motor, usuarios=:usuarios, almacenamiento=:almacenamiento, cpu=:cpu, puerto=:puerto, direccionIP=:direccionIP WHERE idDBConfig=:idDBConfig");
+            $stmt->execute([
+                'nombreDB' => $nombreDB,
+                'motor' => $motor,
+                'usuarios' => $usuarios,
+                'almacenamiento' => $almacenamiento,
+                'cpu' => $cpu,
+                'puerto' => $puerto,
+                'direccionIP' => $direccionIP,
+                'idDBConfig' => $idDBConfig
+            ]);
+
+            $success = "Base de datos actualizada exitosamente.";
+            $action = '';
+            $dbToEdit = null; // Volver al modo normal (sin edición)
+        } catch (PDOException $e) {
+            $error = "Error al actualizar la base de datos: " . $e->getMessage();
+        }
     }
 }
 
@@ -346,37 +377,71 @@ try {
         <div class="sections">
             <!-- Sección para manejo de Base de Datos -->
             <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
-                <form action="paas.php?action=crearDB" method="POST">
-                    <label for="nombreDB">Nombre de la Base de Datos:</label>
-                    <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
+                <?php if ($action === 'editarDB' && isset($_GET['idDBConfig']) && !empty($dbToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración</h3>
+                    <form action="paas.php?action=editarDB&idDBConfig=<?php echo (int)$_GET['idDBConfig']; ?>" method="POST">
+                        <label for="nombreDB">Nombre de la Base de Datos:</label>
+                        <input type="text" id="nombreDB" name="nombreDB" value="<?php echo htmlspecialchars($dbToEdit['nombreDB']); ?>" required>
 
-                    <label for="motor">Motor:</label>
-                    <select id="motor" name="motor" required>
-                        <option value="">Selecciona el Motor</option>
-                        <option value="MySQL">MySQL</option>
-                        <option value="PostgreSQL">PostgreSQL</option>
-                        <option value="MariaDB">MariaDB</option>
-                        <option value="Oracle">Oracle</option>
-                    </select>
+                        <label for="motor">Motor:</label>
+                        <select id="motor" name="motor" required>
+                            <option value="">Selecciona el Motor</option>
+                            <option value="MySQL" <?php if($dbToEdit['motor']=='MySQL') echo 'selected'; ?>>MySQL</option>
+                            <option value="PostgreSQL" <?php if($dbToEdit['motor']=='PostgreSQL') echo 'selected'; ?>>PostgreSQL</option>
+                            <option value="MariaDB" <?php if($dbToEdit['motor']=='MariaDB') echo 'selected'; ?>>MariaDB</option>
+                            <option value="Oracle" <?php if($dbToEdit['motor']=='Oracle') echo 'selected'; ?>>Oracle</option>
+                        </select>
 
-                    <label for="usuarios">Número de usuarios permitidos:</label>
-                    <input type="number" id="usuarios" name="usuarios" min="1" required>
+                        <label for="usuarios">Número de usuarios permitidos:</label>
+                        <input type="number" id="usuarios" name="usuarios" min="1" value="<?php echo (int)$dbToEdit['usuarios']; ?>" required>
 
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                        <label for="almacenamiento">Almacenamiento (MB):</label>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" value="<?php echo (int)$dbToEdit['almacenamiento']; ?>" required>
 
-                    <label for="cpu">CPU (número de cores):</label>
-                    <input type="number" id="cpu" name="cpu" min="1" required>
+                        <label for="cpu">CPU (número de cores):</label>
+                        <input type="number" id="cpu" name="cpu" min="1" value="<?php echo (int)$dbToEdit['cpu']; ?>" required>
 
-                    <label for="puerto">Puerto:</label>
-                    <input type="number" id="puerto" name="puerto" min="1" required>
+                        <label for="puerto">Puerto:</label>
+                        <input type="number" id="puerto" name="puerto" min="1" value="<?php echo (int)$dbToEdit['puerto']; ?>" required>
 
-                    <label for="direccionIP">Dirección IP:</label>
-                    <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
+                        <label for="direccionIP">Dirección IP:</label>
+                        <input type="text" id="direccionIP" name="direccionIP" value="<?php echo htmlspecialchars($dbToEdit['direccionIP']); ?>" required>
 
-                    <input type="submit" value="Crear Base de Datos">
-                </form>
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                <?php else: ?>
+                    <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
+                    <form action="paas.php?action=crearDB" method="POST">
+                        <label for="nombreDB">Nombre de la Base de Datos:</label>
+                        <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
+
+                        <label for="motor">Motor:</label>
+                        <select id="motor" name="motor" required>
+                            <option value="">Selecciona el Motor</option>
+                            <option value="MySQL">MySQL</option>
+                            <option value="PostgreSQL">PostgreSQL</option>
+                            <option value="MariaDB">MariaDB</option>
+                            <option value="Oracle">Oracle</option>
+                        </select>
+
+                        <label for="usuarios">Número de usuarios permitidos:</label>
+                        <input type="number" id="usuarios" name="usuarios" min="1" required>
+
+                        <label for="almacenamiento">Almacenamiento (MB):</label>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+
+                        <label for="cpu">CPU (número de cores):</label>
+                        <input type="number" id="cpu" name="cpu" min="1" required>
+
+                        <label for="puerto">Puerto:</label>
+                        <input type="number" id="puerto" name="puerto" min="1" required>
+
+                        <label for="direccionIP">Dirección IP:</label>
+                        <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
+
+                        <input type="submit" value="Crear Base de Datos">
+                    </form>
+                <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Bases de Datos Configuradas</h4>

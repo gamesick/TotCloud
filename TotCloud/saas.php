@@ -117,6 +117,90 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
     }
 }
 
+// Editar Cloud Storage (GET)
+if ($action === 'editarCS' && isset($_GET['idCSConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idCS = intval($_GET['idCSConfig']);
+    try {
+        $stmt = $pdo->prepare("SELECT nombreCS, almacenamiento, idCloudStorage FROM CS_CONFIG WHERE idCSConfig = :idCSConfig");
+        $stmt->execute(['idCSConfig' => $idCS]);
+        $csToEdit = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = "Error al obtener la Video Conference: " . $e->getMessage();
+    }
+}
+
+// Editar Cloud Storage (UPDATE)
+if ($action === 'editarCS' && isset($_GET['idCSConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idCS = intval($_GET['idCSConfig']);
+    $nombreCS = trim($_POST['nombreCS']);
+    $almacenamiento = intval($_POST['almacenamiento']);
+    $idCloudStorage = intval($_POST['idCloudStorage']);
+
+    if (empty($nombreCS) || $almacenamiento <= 0 || $idCloudStorage <= 0) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento, idCloudStorage=:idCloudStorage WHERE idCSConfig=:idCSConfig");
+            $stmt->execute([
+                'nombreCS' => $nombreCS,
+                'almacenamiento' => $almacenamiento,
+                'idCloudStorage' => $idCloudStorage,
+                'idCSConfig' => $idCS
+            ]);
+
+            $success = "Video Conference editada exitosamente.";
+            $action = '';
+            $csToEdit = null;
+        } catch (PDOException $e) {
+            $error = "Error al editar la video conference: " . $e->getMessage();
+        }
+    }
+}
+
+// Editar Video Conference (GET)
+if ($action === 'editarVC' && isset($_GET['idVCConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idVC = intval($_GET['idVCConfig']);
+    try {
+        $stmt = $pdo->prepare("SELECT nombreVC, calidad, anchoBanda, maxParticipantes, idioma FROM VC_CONFIG WHERE idVCConfig = :idVCConfig");
+        $stmt->execute(['idVCConfig' => $idVC]);
+        $vcToEdit = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = "Error al obtener la Video Conference: " . $e->getMessage();
+    }
+}
+
+// Editar Video Conference (UPDATE)
+if ($action === 'editarVC' && isset($_GET['idVCConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idVC = intval($_GET['idVCConfig']);
+    $nombreVC = trim($_POST['nombreVC']);
+    $calidad = trim($_POST['calidad']);
+    $anchoBanda = intval($_POST['anchoBanda']);
+    $maxParticipantes = intval($_POST['maxParticipantes']);
+    $idioma = trim($_POST['idioma']);
+
+    if (empty($nombreVC) || empty($calidad) || $anchoBanda <= 0 || $maxParticipantes <= 0 || empty($idioma)) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE VC_CONFIG SET nombreVC=:nombreVC, calidad=:calidad, anchoBanda=:anchoBanda, maxParticipantes=:maxParticipantes, idioma=:idioma WHERE idVCConfig=:idVCConfig");
+            $stmt->execute([
+                'nombreVC' => $nombreVC,
+                'calidad' => $calidad,
+                'anchoBanda' => $anchoBanda,
+                'maxParticipantes' => $maxParticipantes,
+                'idioma' => $idioma,
+                'idVCConfig' => $idVC
+            ]);
+
+            $success = "Video Conference editada exitosamente.";
+            $action = '';
+            $vcToEdit = null;
+        } catch (PDOException $e) {
+            $error = "Error al editar la video conference: " . $e->getMessage();
+        }
+    }
+}
+
 // Obtener lista de cloud storage
 $csList = [];
 try {
@@ -387,26 +471,49 @@ try {
 
             <!-- Sección para manejo de Cloud Storage -->
             <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Cloud Storage</h3>
-                <form action="saas.php?action=crearCS" method="POST">
-                    <label for="nombreCS">Nombre de la Cloud Storage:</label>
-                    <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
+                <?php if ($action === 'editarCS' && isset($_GET['idCSConfig']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                        <h3><i class="fas fa-edit"></i> Editar Configuración Video Conference</h3>
+                        <form action="saas.php?action=editarCS&idCSConfig=<?php echo (int)$_GET['idCSConfig']; ?>" method="POST">
+                            <label>Nombre de la Cloud Storage:</label>
+                            <input type="text" name="nombreCS" value="<?php echo htmlspecialchars($csToEdit['nombreCS']); ?>" required>
 
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                            <label>Almacenamiento (MB):</label>
+                            <input type="number" name="almacenamiento" min="1" value="<?php echo (int)$csToEdit['almacenamiento']; ?>" required>
+                            
+                            <label for="idCloudStorage">Cloud Storage:</label>
+                            <select id="idCloudStorage" name="idCloudStorage" required>
+                                <option value="">Selecciona una Cloud Storage</option>
+                                <?php foreach ($cloudstorage as $et): ?>
+                                    <option value="<?php echo (int)$et['idCloudStorage']; ?>">
+                                        <?php echo htmlspecialchars($et['nombreCS']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
 
-                    <label for="idCloudStorage">Cloud Storage:</label>
-                    <select id="idCloudStorage" name="idCloudStorage" required>
-                        <option value="">Selecciona una Cloud Storage</option>
-                        <?php foreach ($cloudstorage as $et): ?>
-                            <option value="<?php echo (int)$et['idCloudStorage']; ?>">
-                                <?php echo htmlspecialchars($et['nombreCS']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                            <input type="submit" value="Guardar Cambios">
+                        </form>
+                    <?php else: ?>
+                        <h3><i class="fas fa-database"></i> Configuración de Cloud Storage</h3>
+                        <form action="saas.php?action=crearCS" method="POST">
+                            <label for="nombreCS">Nombre de la Cloud Storage:</label>
+                            <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
 
-                    <input type="submit" value="Crear Cloud Storage">
-                </form>
+                            <label for="almacenamiento">Almacenamiento (MB):</label>
+                            <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+
+                            <label for="idCloudStorage">Cloud Storage:</label>
+                            <select id="idCloudStorage" name="idCloudStorage" required>
+                                <option value="">Selecciona una Cloud Storage</option>
+                                <?php foreach ($cloudstorage as $et): ?>
+                                    <option value="<?php echo (int)$et['idCloudStorage']; ?>">
+                                        <?php echo htmlspecialchars($et['nombreCS']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+
+                            <input type="submit" value="Crear Cloud Storage">
+                        </form>
+                        <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Cloud Storage Configuradas</h4>
@@ -433,41 +540,77 @@ try {
                 </div>
             </div>
                             
-            <!-- Sección para manejo de Video Conference -->
+            <!-- Panel Video Conference a la derecha -->
             <div class="section-card">
-                <h3><i class="fas fa-cogs"></i> Configuración de Video Conference</h3>
-                <form action="saas.php?action=crearVC" method="POST">
-                    <label for="nombreVC">Nombre de la Video Conference:</label>
-                    <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
+                <?php if ($action === 'editarVC' && isset($_GET['idVCConfig']) && !empty($vcToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración Video Conference</h3>
+                    <form action="saas.php?action=editarVC&idVCConfig=<?php echo (int)$_GET['idVCConfig']; ?>" method="POST">
+                        <label>Nombre de la Video Conference:</label>
+                        <input type="text" name="nombreVC" value="<?php echo htmlspecialchars($vcToEdit['nombreVC']); ?>" required>
 
-                    <label for="calidad">Calidad:</label>
-                    <select id="calidad" name="calidad">
-                        <option value="">Selecciona la Calidad</option>
-                        <option value="240p">240p</option>
-                        <option value="480p">480p</option>
-                        <option value="720p">720p</option>
-                        <option value="1080p">1080p</option>
-                        <option value="4k">4k</option>
-                    </select>
+                        <label>Calidad:</label>
+                        <select name="calidad" required>
+                            <option value="">Selecciona la Calidad</option>
+                            <option value="240p" <?php if($vcToEdit['calidad']=='240p') echo 'selected'; ?>>240p</option>
+                            <option value="480p" <?php if($vcToEdit['calidad']=='480p') echo 'selected'; ?>>480p</option>
+                            <option value="720p" <?php if($vcToEdit['calidad']=='720p') echo 'selected'; ?>>720p</option>
+                            <option value="1080p" <?php if($vcToEdit['calidad']=='1080p') echo 'selected'; ?>>1080p</option>
+                            <option value="4k" <?php if($vcToEdit['calidad']=='4k') echo 'selected'; ?>>4k</option>
+                        </select>
 
-                    <label for="anchoBanda">Ancho de Banda:</label>
-                    <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+                        <label>Ancho de Banda:</label>
+                        <input type="number" name="anchoBanda" min="1" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
 
-                    <label for="maxParticipantes">Número máximo de Participantes:</label>
-                    <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
-                    
-                    <label for="idioma">Idioma:</label>
-                    <select id="idioma" name="idioma">
-                        <option value="">Selecciona un Idioma</option>
-                        <option value="Español">Español</option>
-                        <option value="English">English</option>
-                        <option value="Deutsch">Deutsch</option>
-                        <option value="Italian">Italian</option>
-                        <option value="French">French</option>
-                    </select>
+                        <label>Número máximo de Participantes:</label>
+                        <input type="number" name="maxParticipantes" min="1" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
+                        
+                        <label>Idioma:</label>
+                        <select name="idioma" required>
+                            <option value="">Selecciona un Idioma</option>
+                            <option value="Español" <?php if($vcToEdit['idioma']=='Español') echo 'selected'; ?>>Español</option>
+                            <option value="English" <?php if($vcToEdit['idioma']=='English') echo 'selected'; ?>>English</option>
+                            <option value="Deutsch" <?php if($vcToEdit['idioma']=='Deutsch') echo 'selected'; ?>>Deutsch</option>
+                            <option value="Italian" <?php if($vcToEdit['idioma']=='Italian') echo 'selected'; ?>>Italian</option>
+                            <option value="French" <?php if($vcToEdit['idioma']=='French') echo 'selected'; ?>>French</option>
+                        </select>
 
-                    <input type="submit" value="Crear Video Conference">
-                </form>
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                <?php else: ?>
+                    <h3><i class="fas fa-cogs"></i> Configuración de Video Conference</h3>
+                    <form action="saas.php?action=crearVC" method="POST">
+                        <label for="nombreVC">Nombre de la Video Conference:</label>
+                        <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
+
+                        <label for="calidad">Calidad:</label>
+                        <select id="calidad" name="calidad" required>
+                            <option value="">Selecciona la Calidad</option>
+                            <option value="240p">240p</option>
+                            <option value="480p">480p</option>
+                            <option value="720p">720p</option>
+                            <option value="1080p">1080p</option>
+                            <option value="4k">4k</option>
+                        </select>
+
+                        <label for="anchoBanda">Ancho de Banda:</label>
+                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+
+                        <label for="maxParticipantes">Número máximo de Participantes:</label>
+                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
+                        
+                        <label for="idioma">Idioma:</label>
+                        <select id="idioma" name="idioma" required>
+                            <option value="">Selecciona un Idioma</option>
+                            <option value="Español">Español</option>
+                            <option value="English">English</option>
+                            <option value="Deutsch">Deutsch</option>
+                            <option value="Italian">Italian</option>
+                            <option value="French">French</option>
+                        </select>
+
+                        <input type="submit" value="Crear Video Conference">
+                    </form>
+                <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Video Conference Configuradas</h4>
