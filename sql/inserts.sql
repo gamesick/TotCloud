@@ -46,7 +46,7 @@ INSERT INTO SERVICIO (idServicio, tipoServicio, descripcion, idEtapa, idPrivileg
 (8, 'Video Conference', 'SAAS', 4, 6);
 
 -- 9. CLOUD_STORAGE
-INSERT INTO CLOUD_STORAGE (idCloudStorage, limiteSubida, velocidad, latencia) VALUES
+INSERT INTO CLOUD_STORAGE (idCloudStorage, nombreCS, limiteSubida, velocidad, latencia) VALUES
 (5, 'Drive', 3000, 600, 5),
 (6, 'SharePoint', 4000, 800, 8),
 (7, 'OneDrive', 5000, 1000, 3);
