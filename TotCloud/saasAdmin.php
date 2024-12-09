@@ -3,6 +3,7 @@
 session_start();
 require 'config.php';
 
+
 // Obtener información del empleado desde la tabla PERSONAL
 try {
     $stmt = $pdo->prepare('
@@ -19,18 +20,40 @@ try {
     }
 
     $idPersona = $empleado['idPersona'];
-
 } catch (PDOException $e) {
     echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
 }
 
-// Manejo de acciones: crear DB, eliminar DB, crear App, eliminar App
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
 
-// Crear Cloud Storage
+// Variables para edición
+$csToEdit = null;
+$vcToEdit = null;
+
+// ---------------------- CLOUD STORAGE ----------------------
+
+// Editar Cloud Storage - Mostrar datos (GET)
+if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idCS = intval($_GET['idCloudStorage']);
+    try {
+        $stmt = $pdo->prepare("
+            SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento,
+                   CLOUD_STORAGE.limiteSubida, CLOUD_STORAGE.velocidad, CLOUD_STORAGE.latencia
+            FROM CS_CONFIG
+            JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
+            WHERE CS_CONFIG.idCloudStorage = :idCloudStorage
+        ");
+        $stmt->execute(['idCloudStorage' => $idCS]);
+        $csToEdit = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = "Error al obtener la Cloud Storage: " . $e->getMessage();
+    }
+}
+
+// Crear Cloud Storage (INSERT)
 if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
@@ -42,20 +65,19 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(nombreCS, limiteSubida, velocidad, latencia) 
-                                    VALUES(:nombreCS, :limiteSubida, :velocidad, :latencia)");
+            // Insertar en CLOUD_STORAGE (sin nombreCS)
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia) 
+                                   VALUES(:limiteSubida, :velocidad, :latencia)");
             $stmt->execute([
-                'nombreCS' => $nombreCS,
                 'limiteSubida' => $limiteSubida,
                 'velocidad' => $velocidad,
                 'latencia' => $latencia
-            ]);                
+            ]);
             $idCloudStorage = $pdo->lastInsertId();
 
-            // Insertar configuración en CS_CONFIG
+            // Insertar en CS_CONFIG con nombreCS
             $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
-                                    VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
+                                   VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
             $stmt->execute([
                 'nombreCS' => $nombreCS,
                 'almacenamiento' => $almacenamiento,
@@ -70,15 +92,52 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Editar Cloud Storage (UPDATE)
+if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idCS = intval($_GET['idCloudStorage']);
+    $nombreCS = trim($_POST['nombreCS']);
+    $almacenamiento = intval($_POST['almacenamiento']);
+    $limiteSubida = intval($_POST['limiteSubida']);
+    $velocidad = intval($_POST['velocidad']);
+    $latencia = intval($_POST['latencia']);
+
+    if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            // Actualizar CLOUD_STORAGE (sin nombreCS)
+            $stmt = $pdo->prepare("UPDATE CLOUD_STORAGE SET limiteSubida=:limiteSubida, velocidad=:velocidad, latencia=:latencia WHERE idCloudStorage=:idCS");
+            $stmt->execute([
+                'limiteSubida' => $limiteSubida,
+                'velocidad' => $velocidad,
+                'latencia' => $latencia,
+                'idCS' => $idCS
+            ]);
+
+            // Actualizar CS_CONFIG (con nombreCS)
+            $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento WHERE idCloudStorage=:idCS");
+            $stmt->execute([
+                'nombreCS' => $nombreCS,
+                'almacenamiento' => $almacenamiento,
+                'idCS' => $idCS
+            ]);
+
+            $success = "Cloud Storage editada exitosamente.";
+            $action = '';
+            $csToEdit = null;
+        } catch (PDOException $e) {
+            $error = "Error al editar la cloud storage: " . $e->getMessage();
+        }
+    }
+}
+
 // Eliminar Cloud Storage
 if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
     $idDB = intval($_GET['idCloudStorage']);
     try {
-        // Primero eliminar CS_CONFIG asociada
         $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCloudStorage = :idCloudStorage");
         $stmt->execute(['idCloudStorage' => $idDB]);
 
-        // Luego eliminar la entrada de CLOUD_STORAGE
         $stmt = $pdo->prepare("DELETE FROM CLOUD_STORAGE WHERE idCloudStorage = :idCloudStorage");
         $stmt->execute(['idCloudStorage' => $idDB]);
 
@@ -88,7 +147,7 @@ if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
     }
 }
 
-// Crear Video Conference
+// Crear Video Conference (INSERT)
 if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreVC = trim($_POST['nombreVC']);
     $calidad = trim($_POST['calidad']);
@@ -100,7 +159,6 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Todos los campos de la Video Conference son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Insertar configuración en VC_CONFIG
             $stmt = $pdo->prepare("INSERT INTO VC_CONFIG (nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) 
                                    VALUES (:nombreVC, :calidad, :anchoBanda, :maxParticipantes, :idioma, :idVideoConference, :idPersona)");
             $stmt->execute([
@@ -120,11 +178,54 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Editar Video Conference (GET)
+if ($action === 'editarVC' && isset($_GET['idVCConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idVC = intval($_GET['idVCConfig']);
+    try {
+        $stmt = $pdo->prepare("SELECT nombreVC, calidad, anchoBanda, maxParticipantes, idioma FROM VC_CONFIG WHERE idVCConfig = :idVCConfig");
+        $stmt->execute(['idVCConfig' => $idVC]);
+        $vcToEdit = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = "Error al obtener la Video Conference: " . $e->getMessage();
+    }
+}
+
+// Editar Video Conference (UPDATE)
+if ($action === 'editarVC' && isset($_GET['idVCConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idVC = intval($_GET['idVCConfig']);
+    $nombreVC = trim($_POST['nombreVC']);
+    $calidad = trim($_POST['calidad']);
+    $anchoBanda = intval($_POST['anchoBanda']);
+    $maxParticipantes = intval($_POST['maxParticipantes']);
+    $idioma = trim($_POST['idioma']);
+
+    if (empty($nombreVC) || empty($calidad) || $anchoBanda <= 0 || $maxParticipantes <= 0 || empty($idioma)) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE VC_CONFIG SET nombreVC=:nombreVC, calidad=:calidad, anchoBanda=:anchoBanda, maxParticipantes=:maxParticipantes, idioma=:idioma WHERE idVCConfig=:idVCConfig");
+            $stmt->execute([
+                'nombreVC' => $nombreVC,
+                'calidad' => $calidad,
+                'anchoBanda' => $anchoBanda,
+                'maxParticipantes' => $maxParticipantes,
+                'idioma' => $idioma,
+                'idVCConfig' => $idVC
+            ]);
+
+            $success = "Video Conference editada exitosamente.";
+            $action = '';
+            $vcToEdit = null;
+        } catch (PDOException $e) {
+            $error = "Error al editar la video conference: " . $e->getMessage();
+        }
+    }
+}
+
 // Eliminar Video Conference
 if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
     $idVC = intval($_GET['idVCConfig']);
     try {
-        // Primero eliminar VC_CONFIG asociada
         $stmt = $pdo->prepare("DELETE FROM VC_CONFIG WHERE idVCConfig = :idVCConfig");
         $stmt->execute(['idVCConfig' => $idVC]);
 
@@ -138,10 +239,9 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 $csList = [];
 try {
     $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
+        SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
         FROM CS_CONFIG
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
-        JOIN USUARIO ON CS_CONFIG.idPersona = USUARIO.idUsuario
         ORDER BY CS_CONFIG.nombreCS ASC
     ");
     $csList = $stmt->fetchAll();
@@ -153,10 +253,9 @@ try {
 $vcList = [];
 try {
     $stmt = $pdo->query("
-        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma, VC_CONFIG.idPersona
+        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma
         FROM VC_CONFIG
         JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
-        JOIN USUARIO ON VC_CONFIG.idPersona = USUARIO.idUsuario
         ORDER BY VC_CONFIG.nombreVC ASC
     ");
     $vcList = $stmt->fetchAll();
@@ -164,14 +263,7 @@ try {
     $error = "Error al obtener la lista de aplicaciones: " . $e->getMessage();
 }
 
-// Obtener etapas para el dropdown en aplicaciones
-$etapas = [];
-try {
-    $stmt = $pdo->query("SELECT idEtapa, nombreEtapa FROM ETAPA ORDER BY idEtapa ASC");
-    $etapas = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $error = "Error al obtener etapas: " . $e->getMessage();
-}
+// Estilos y disposición (Cloud Storage a la izquierda, Video Conference a la derecha)
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -181,7 +273,7 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Reset */
+        /* Estilos aplicados anteriormente para estética y disposición */
         * {
             margin: 0;
             padding: 0;
@@ -218,7 +310,7 @@ try {
             background-color: #ffffff;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 1000px;
             width: 90%;
@@ -252,11 +344,26 @@ try {
             color: red;
         }
 
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3182ce;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+
         .sections {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: flex-start;
             gap: 30px;
-            justify-content: center;
         }
 
         .section-card {
@@ -264,8 +371,7 @@ try {
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             padding: 30px;
-            width: 100%;
-            max-width: 450px;
+            width: 450px;
             text-align: left;
         }
 
@@ -355,17 +461,6 @@ try {
             color: #2b6cb0;
             text-decoration: underline;
         }
-
-        @media (min-width: 600px) {
-            .sections {
-                flex-wrap: nowrap;
-                justify-content: space-between;
-            }
-
-            .section-card {
-                width: 45%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -384,27 +479,49 @@ try {
         <?php endif; ?>
 
         <div class="sections">
-            <!-- Sección para manejo de Base de Datos -->
+            <!-- Panel Cloud Storage a la izquierda -->
             <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Cloud Storage</h3>
-                <form action="saasAdmin.php?action=crearCS" method="POST">
-                    <label for="nombreCS">Nombre de la Cloud Storage:</label>
-                    <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
+                <?php if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración Cloud Storage</h3>
+                    <form action="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$_GET['idCloudStorage']; ?>" method="POST">
+                        <label>Nombre de la Cloud Storage:</label>
+                        <input type="text" name="nombreCS" value="<?php echo htmlspecialchars($csToEdit['nombreCS']); ?>" required>
 
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                        <label>Almacenamiento (MB):</label>
+                        <input type="number" name="almacenamiento" min="1" value="<?php echo (int)$csToEdit['almacenamiento']; ?>" required>
 
-                    <label for="limiteSubida">Límite de Subida (MB):</label>
-                    <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
+                        <label>Límite de Subida (MB):</label>
+                        <input type="number" name="limiteSubida" min="1" value="<?php echo (int)$csToEdit['limiteSubida']; ?>" required>
 
-                    <label for="velocidad">Velocidad (MB/s):</label>
-                    <input type="number" id="velocidad" name="velocidad" min="1" required>
+                        <label>Velocidad (MB/s):</label>
+                        <input type="number" name="velocidad" min="1" value="<?php echo (int)$csToEdit['velocidad']; ?>" required>
 
-                    <label for="latencia">Latencia (ms):</label>
-                    <input type="number" id="latencia" name="latencia" min="1" required>
+                        <label>Latencia (ms):</label>
+                        <input type="number" name="latencia" min="1" value="<?php echo (int)$csToEdit['latencia']; ?>" required>
 
-                    <input type="submit" value="Crear Cloud Storage">
-                </form>
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                <?php else: ?>
+                    <h3><i class="fas fa-database"></i> Configuración de Cloud Storage</h3>
+                    <form action="saasAdmin.php?action=crearCS" method="POST">
+                        <label for="nombreCS">Nombre de la Cloud Storage:</label>
+                        <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
+
+                        <label for="almacenamiento">Almacenamiento (MB):</label>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+
+                        <label for="limiteSubida">Límite de Subida (MB):</label>
+                        <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
+
+                        <label for="velocidad">Velocidad (MB/s):</label>
+                        <input type="number" id="velocidad" name="velocidad" min="1" required>
+
+                        <label for="latencia">Latencia (ms):</label>
+                        <input type="number" id="latencia" name="latencia" min="1" required>
+
+                        <input type="submit" value="Crear Cloud Storage">
+                    </form>
+                <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Cloud Storage Configuradas</h4>
@@ -420,52 +537,87 @@ try {
                                     <td class="actions">
                                         <a href="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
                                         <a href="saasAdmin.php?action=eliminarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
-                                        
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8">No hay bases de datos configuradas.</td></tr>
+                            <tr><td colspan="2">No hay Cloud Storage configuradas.</td></tr>
                         <?php endif; ?>
                     </table>
                 </div>
             </div>
 
-            <!-- Sección para manejo de Aplicaciones -->
+            <!-- Panel Video Conference a la derecha -->
             <div class="section-card">
-                <h3><i class="fas fa-cogs"></i> Configuración de Video Conference</h3>
-                <form action="saasAdmin.php?action=crearVC" method="POST">
-                    <label for="nombreVC">Nombre de la Video Conference:</label>
-                    <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
+                <?php if ($action === 'editarVC' && isset($_GET['idVCConfig']) && !empty($vcToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración Video Conference</h3>
+                    <form action="saasAdmin.php?action=editarVC&idVCConfig=<?php echo (int)$_GET['idVCConfig']; ?>" method="POST">
+                        <label>Nombre de la Video Conference:</label>
+                        <input type="text" name="nombreVC" value="<?php echo htmlspecialchars($vcToEdit['nombreVC']); ?>" required>
 
-                    <label for="calidad">Calidad:</label>
-                    <select id="calidad" name="calidad">
-                        <option value="">Selecciona la Calidad</option>
-                        <option value="240p">240p</option>
-                        <option value="480p">480p</option>
-                        <option value="720p">720p</option>
-                        <option value="1080p">1080p</option>
-                        <option value="4k">4k</option>
-                    </select>
+                        <label>Calidad:</label>
+                        <select name="calidad" required>
+                            <option value="">Selecciona la Calidad</option>
+                            <option value="240p" <?php if($vcToEdit['calidad']=='240p') echo 'selected'; ?>>240p</option>
+                            <option value="480p" <?php if($vcToEdit['calidad']=='480p') echo 'selected'; ?>>480p</option>
+                            <option value="720p" <?php if($vcToEdit['calidad']=='720p') echo 'selected'; ?>>720p</option>
+                            <option value="1080p" <?php if($vcToEdit['calidad']=='1080p') echo 'selected'; ?>>1080p</option>
+                            <option value="4k" <?php if($vcToEdit['calidad']=='4k') echo 'selected'; ?>>4k</option>
+                        </select>
 
-                    <label for="anchoBanda">Ancho de Banda:</label>
-                    <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+                        <label>Ancho de Banda:</label>
+                        <input type="number" name="anchoBanda" min="1" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
 
-                    <label for="maxParticipantes">Número máximo de Participantes:</label>
-                    <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
-                    
-                    <label for="idioma">Idioma:</label>
-                    <select id="idioma" name="idioma">
-                        <option value="">Selecciona un Idioma</option>
-                        <option value="Español">Español</option>
-                        <option value="English">English</option>
-                        <option value="Deutsch">Deutsch</option>
-                        <option value="Italian">Italian</option>
-                        <option value="French">French</option>
-                    </select>
+                        <label>Número máximo de Participantes:</label>
+                        <input type="number" name="maxParticipantes" min="1" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
+                        
+                        <label>Idioma:</label>
+                        <select name="idioma" required>
+                            <option value="">Selecciona un Idioma</option>
+                            <option value="Español" <?php if($vcToEdit['idioma']=='Español') echo 'selected'; ?>>Español</option>
+                            <option value="English" <?php if($vcToEdit['idioma']=='English') echo 'selected'; ?>>English</option>
+                            <option value="Deutsch" <?php if($vcToEdit['idioma']=='Deutsch') echo 'selected'; ?>>Deutsch</option>
+                            <option value="Italian" <?php if($vcToEdit['idioma']=='Italian') echo 'selected'; ?>>Italian</option>
+                            <option value="French" <?php if($vcToEdit['idioma']=='French') echo 'selected'; ?>>French</option>
+                        </select>
 
-                    <input type="submit" value="Crear Video Conference">
-                </form>
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                <?php else: ?>
+                    <h3><i class="fas fa-cogs"></i> Configuración de Video Conference</h3>
+                    <form action="saasAdmin.php?action=crearVC" method="POST">
+                        <label for="nombreVC">Nombre de la Video Conference:</label>
+                        <input type="text" id="nombreVC" name="nombreVC" placeholder="Nombre" required>
+
+                        <label for="calidad">Calidad:</label>
+                        <select id="calidad" name="calidad" required>
+                            <option value="">Selecciona la Calidad</option>
+                            <option value="240p">240p</option>
+                            <option value="480p">480p</option>
+                            <option value="720p">720p</option>
+                            <option value="1080p">1080p</option>
+                            <option value="4k">4k</option>
+                        </select>
+
+                        <label for="anchoBanda">Ancho de Banda:</label>
+                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+
+                        <label for="maxParticipantes">Número máximo de Participantes:</label>
+                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
+                        
+                        <label for="idioma">Idioma:</label>
+                        <select id="idioma" name="idioma" required>
+                            <option value="">Selecciona un Idioma</option>
+                            <option value="Español">Español</option>
+                            <option value="English">English</option>
+                            <option value="Deutsch">Deutsch</option>
+                            <option value="Italian">Italian</option>
+                            <option value="French">French</option>
+                        </select>
+
+                        <input type="submit" value="Crear Video Conference">
+                    </form>
+                <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Video Conference Configuradas</h4>
@@ -477,7 +629,7 @@ try {
                         <?php if (!empty($vcList)): ?>
                             <?php foreach ($vcList as $vcItem): ?>
                                 <tr>
-                                <td><?php echo htmlspecialchars($vcItem['nombreVC']); ?></td>
+                                    <td><?php echo htmlspecialchars($vcItem['nombreVC']); ?></td>
                                     <td class="actions">
                                         <a href="saasAdmin.php?action=editarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Editar</a>
                                         <a href="saasAdmin.php?action=eliminarVC&idVCConfig=<?php echo (int)$vcItem['idVCConfig']; ?>">Eliminar</a>
@@ -485,7 +637,7 @@ try {
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="4">No hay aplicaciones registradas.</td></tr>
+                            <tr><td colspan="2">No hay aplicaciones registradas.</td></tr>
                         <?php endif; ?>
                     </table>
                 </div>
