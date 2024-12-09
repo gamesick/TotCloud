@@ -101,14 +101,20 @@ if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
 // Obtener lista de bases de datos
 $dbList = [];
 try {
-    $stmt = $pdo->query("
-        SELECT DB_CONFIG.idDBConfig, DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor, DB_CONFIG.idPersona 
-        FROM DB_CONFIG
-        JOIN DATA_BASE ON DB_CONFIG.idDataBase = DATA_BASE.idDataBase
-        JOIN USUARIO ON  DB_CONFIG.idPersona = USUARIO.idUsuario
-        ORDER BY DB_CONFIG.nombreDB ASC
-    ");
-    $dbList = $stmt->fetchAll();
+    // Verificar si $idPersona tiene un valor válido
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT DB_CONFIG.idDBConfig, DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor, DB_CONFIG.idPersona 
+            FROM DB_CONFIG
+            JOIN DATA_BASE ON DB_CONFIG.idDataBase = DATA_BASE.idDataBase
+            JOIN USUARIO ON  DB_CONFIG.idPersona = USUARIO.idUsuario WHERE DB_CONFIG.idPersona = :idPersona
+            ORDER BY DB_CONFIG.nombreDB ASC
+        ");
+        $stmt->execute(['idPersona' => $idPersona]);
+        $dbList = $stmt->fetchAll();
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }

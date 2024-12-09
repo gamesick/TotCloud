@@ -120,14 +120,20 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 // Obtener lista de cloud storage
 $csList = [];
 try {
-    $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
-        FROM CS_CONFIG
-        JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
-        JOIN USUARIO ON CS_CONFIG.idPersona = USUARIO.idUsuario
-        ORDER BY CS_CONFIG.nombreCS ASC
-    ");
-    $csList = $stmt->fetchAll();
+    // Verificar si $idPersona tiene un valor válido
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
+            FROM CS_CONFIG
+            JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
+             WHERE CS_CONFIG.idPersona = :idPersona
+            ORDER BY CS_CONFIG.nombreCS ASC
+        ");
+        $stmt->execute(['idPersona' => $idPersona]);
+        $csList = $stmt->fetchAll();
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }
@@ -135,14 +141,25 @@ try {
 // Obtener lista de video conference
 $vcList = [];
 try {
-    $stmt = $pdo->query("
-        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma, VC_CONFIG.idPersona
-        FROM VC_CONFIG
-        JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
-        JOIN USUARIO ON VC_CONFIG.idPersona = USUARIO.idUsuario
-        ORDER BY VC_CONFIG.nombreVC ASC
-    ");
-    $vcList = $stmt->fetchAll();
+    // Verificar si $idPersona tiene un valor válido
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, 
+            VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma, VC_CONFIG.idPersona
+            FROM VC_CONFIG
+            JOIN USUARIO ON VC_CONFIG.idPersona = USUARIO.idUsuario
+            JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
+            WHERE VC_CONFIG.idPersona = :idPersona
+            ORDER BY VC_CONFIG.nombreVC ASC
+        ");
+        $stmt->execute(['idPersona' => $idPersona]);
+        $vcList = $stmt->fetchAll();
+
+        // Puedes hacer algo con $vcList aquí
+
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de aplicaciones: " . $e->getMessage();
 }
