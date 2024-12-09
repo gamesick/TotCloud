@@ -80,8 +80,7 @@ CREATE TABLE CLOUD_STORAGE (
     idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY, 
     limiteSubida INT(16) NOT NULL, 
     velocidad INT(16) NOT NULL, latencia INT(16) NOT NULL,
-    idServicio INT(8) NOT NULL,
-    FOREIGN KEY (idServicio) REFERENCES SERVICIO(idServicio)
+    FOREIGN KEY (idCloudStorage) REFERENCES SERVICIO(idServicio)
 ); 
 
 
