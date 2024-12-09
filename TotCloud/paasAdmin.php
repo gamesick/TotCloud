@@ -3,7 +3,8 @@
 session_start();
 require 'config.php';
 
-// Obtener información del empleado desde la tabla PERSONAL incluyendo idPersona
+
+// Obtener información del empleado
 try {
     $stmt = $pdo->prepare('
         SELECT idPersona, nombre, apellido 
@@ -19,18 +20,17 @@ try {
     }
 
     $idPersona = $empleado['idPersona'];
-
 } catch (PDOException $e) {
     echo "Error al obtener información del empleado: " . $e->getMessage();
     exit();
 }
 
-// Manejo de acciones: crear DB, eliminar DB, crear App, eliminar App
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
+$dbToEdit = null; // Variable para edición
 
-// Crear Base de Datos
+// Crear Base de Datos (INSERT)
 if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreDB = trim($_POST['nombreDB']);
     $motor = trim($_POST['motor']);
@@ -44,7 +44,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Todos los campos de la Base de Datos son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Insertar configuración en DB_CONFIG
+            // Insertar configuración en DB_CONFIG con idDataBase = 4 (tal como está en el código actual)
             $stmt = $pdo->prepare("INSERT INTO DB_CONFIG (nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase, idPersona) 
                                    VALUES (:nombreDB, :motor, :usuarios, :almacenamiento, :cpu, :puerto, :direccionIP, :idDataBase, :idPersona)");
             $stmt->execute([
@@ -55,7 +55,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => 4,
+                'idDataBase' => 4, // Se mantiene como en el código actual
                 'idPersona' => $idPersona
             ]);
 
@@ -66,11 +66,11 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Eliminar Base de Datos
+// Eliminar Base de Datos (DELETE)
 if ($action === 'eliminarDB' && isset($_GET['idDBConfig'])) {
     $idDB = intval($_GET['idDBConfig']);
     try {
-        // Primero eliminar DB_CONFIG asociada
+        // Eliminar DB_CONFIG asociada
         $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDBConfig = :idDBConfig");
         $stmt->execute(['idDBConfig' => $idDB]);
 
@@ -80,25 +80,56 @@ if ($action === 'eliminarDB' && isset($_GET['idDBConfig'])) {
     }
 }
 
-// Editar Base de Datos
-if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
-    $idDB = intval($_GET['idDataBase']);
+// Editar Base de Datos - Mostrar datos (GET)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
     try {
-        // Primero editar DB_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM DB_CONFIG WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        // Luego editar la entrada de DATA_BASE
-        $stmt = $pdo->prepare("DELETE FROM DATA_BASE WHERE idDataBase = :idDataBase");
-        $stmt->execute(['idDataBase' => $idDB]);
-
-        $success = "Base de datos editada exitosamente.";
+        // Obtener datos actuales de la DB_CONFIG
+        $stmt = $pdo->prepare("SELECT * FROM DB_CONFIG WHERE idDBConfig = :idDBConfig");
+        $stmt->execute(['idDBConfig' => $idDBConfig]);
+        $dbToEdit = $stmt->fetch();
     } catch (PDOException $e) {
-        $error = "Error al editar la base de datos: " . $e->getMessage();
+        $error = "Error al obtener la base de datos: " . $e->getMessage();
     }
 }
 
-// Obtener lista de bases de datos
+// Editar Base de Datos (UPDATE)
+if ($action === 'editarDB' && isset($_GET['idDBConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idDBConfig = intval($_GET['idDBConfig']);
+    $nombreDB = trim($_POST['nombreDB']);
+    $motor = trim($_POST['motor']);
+    $usuarios = intval($_POST['usuarios']);
+    $almacenamiento = intval($_POST['almacenamiento']);
+    $cpu = intval($_POST['cpu']);
+    $puerto = intval($_POST['puerto']);
+    $direccionIP = trim($_POST['direccionIP']);
+
+    if (empty($nombreDB) || empty($motor) || $usuarios <= 0 || $almacenamiento <= 0 || $cpu <= 0 || $puerto <= 0 || empty($direccionIP)) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE DB_CONFIG SET nombreDB=:nombreDB, motor=:motor, usuarios=:usuarios, almacenamiento=:almacenamiento, cpu=:cpu, puerto=:puerto, direccionIP=:direccionIP WHERE idDBConfig=:idDBConfig");
+            $stmt->execute([
+                'nombreDB' => $nombreDB,
+                'motor' => $motor,
+                'usuarios' => $usuarios,
+                'almacenamiento' => $almacenamiento,
+                'cpu' => $cpu,
+                'puerto' => $puerto,
+                'direccionIP' => $direccionIP,
+                'idDBConfig' => $idDBConfig
+            ]);
+
+            $success = "Base de datos actualizada exitosamente.";
+            $action = '';
+            $dbToEdit = null; // Volver al modo normal (sin edición)
+        } catch (PDOException $e) {
+            $error = "Error al actualizar la base de datos: " . $e->getMessage();
+        }
+    }
+}
+
+// Obtener lista de bases de datos (SELECT)
 $dbList = [];
 try {
     $stmt = $pdo->query("
@@ -120,7 +151,7 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Reset */
+        /* Estilos aplicados anteriormente */
         * {
             margin: 0;
             padding: 0;
@@ -157,7 +188,7 @@ try {
             background-color: #ffffff;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 1000px;
             width: 90%;
@@ -189,6 +220,20 @@ try {
 
         .message.error {
             color: red;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3182ce;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2b6cb0;
+            text-decoration: underline;
         }
 
         .sections {
@@ -294,37 +339,12 @@ try {
             color: #2b6cb0;
             text-decoration: underline;
         }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #3182ce;
-            font-weight: 500;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .back-link:hover {
-            color: #2b6cb0;
-            text-decoration: underline;
-        }
-
-        @media (min-width: 600px) {
-            .sections {
-                flex-wrap: nowrap;
-                justify-content: space-between;
-            }
-
-            .section-card {
-                width: 45%;
-            }
-        }
     </style>
 </head>
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
-        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
+        <a href="homeAdmin.php" class="back-link">← Volver al Inicio Administrativo</a>
         <h2>Administración de PAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios PAAS ofrecidos (Bases de Datos).</p>
 
@@ -339,37 +359,71 @@ try {
         <div class="sections">
             <!-- Sección para manejo de Base de Datos -->
             <div class="section-card">
-                <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
-                <form action="paasAdmin.php?action=crearDB" method="POST">
-                    <label for="nombreDB">Nombre de la Base de Datos:</label>
-                    <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
+                <?php if ($action === 'editarDB' && isset($_GET['idDBConfig']) && !empty($dbToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración</h3>
+                    <form action="paasAdmin.php?action=editarDB&idDBConfig=<?php echo (int)$_GET['idDBConfig']; ?>" method="POST">
+                        <label for="nombreDB">Nombre de la Base de Datos:</label>
+                        <input type="text" id="nombreDB" name="nombreDB" value="<?php echo htmlspecialchars($dbToEdit['nombreDB']); ?>" required>
 
-                    <label for="motor">Motor:</label>
-                    <select id="motor" name="motor" required>
-                        <option value="">Selecciona el Motor</option>
-                        <option value="MySQL">MySQL</option>
-                        <option value="PostgreSQL">PostgreSQL</option>
-                        <option value="MariaDB">MariaDB</option>
-                        <option value="Oracle">Oracle</option>
-                    </select>
+                        <label for="motor">Motor:</label>
+                        <select id="motor" name="motor" required>
+                            <option value="">Selecciona el Motor</option>
+                            <option value="MySQL" <?php if($dbToEdit['motor']=='MySQL') echo 'selected'; ?>>MySQL</option>
+                            <option value="PostgreSQL" <?php if($dbToEdit['motor']=='PostgreSQL') echo 'selected'; ?>>PostgreSQL</option>
+                            <option value="MariaDB" <?php if($dbToEdit['motor']=='MariaDB') echo 'selected'; ?>>MariaDB</option>
+                            <option value="Oracle" <?php if($dbToEdit['motor']=='Oracle') echo 'selected'; ?>>Oracle</option>
+                        </select>
 
-                    <label for="usuarios">Número de usuarios permitidos:</label>
-                    <input type="number" id="usuarios" name="usuarios" min="1" required>
+                        <label for="usuarios">Número de usuarios permitidos:</label>
+                        <input type="number" id="usuarios" name="usuarios" min="1" value="<?php echo (int)$dbToEdit['usuarios']; ?>" required>
 
-                    <label for="almacenamiento">Almacenamiento (MB):</label>
-                    <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                        <label for="almacenamiento">Almacenamiento (MB):</label>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" value="<?php echo (int)$dbToEdit['almacenamiento']; ?>" required>
 
-                    <label for="cpu">CPU (número de cores):</label>
-                    <input type="number" id="cpu" name="cpu" min="1" required>
+                        <label for="cpu">CPU (número de cores):</label>
+                        <input type="number" id="cpu" name="cpu" min="1" value="<?php echo (int)$dbToEdit['cpu']; ?>" required>
 
-                    <label for="puerto">Puerto:</label>
-                    <input type="number" id="puerto" name="puerto" min="1" required>
+                        <label for="puerto">Puerto:</label>
+                        <input type="number" id="puerto" name="puerto" min="1" value="<?php echo (int)$dbToEdit['puerto']; ?>" required>
 
-                    <label for="direccionIP">Dirección IP:</label>
-                    <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
+                        <label for="direccionIP">Dirección IP:</label>
+                        <input type="text" id="direccionIP" name="direccionIP" value="<?php echo htmlspecialchars($dbToEdit['direccionIP']); ?>" required>
 
-                    <input type="submit" value="Crear Base de Datos">
-                </form>
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                <?php else: ?>
+                    <h3><i class="fas fa-database"></i> Configuración de Bases de Datos</h3>
+                    <form action="paasAdmin.php?action=crearDB" method="POST">
+                        <label for="nombreDB">Nombre de la Base de Datos:</label>
+                        <input type="text" id="nombreDB" name="nombreDB" placeholder="Nombre" required>
+
+                        <label for="motor">Motor:</label>
+                        <select id="motor" name="motor" required>
+                            <option value="">Selecciona el Motor</option>
+                            <option value="MySQL">MySQL</option>
+                            <option value="PostgreSQL">PostgreSQL</option>
+                            <option value="MariaDB">MariaDB</option>
+                            <option value="Oracle">Oracle</option>
+                        </select>
+
+                        <label for="usuarios">Número de usuarios permitidos:</label>
+                        <input type="number" id="usuarios" name="usuarios" min="1" required>
+
+                        <label for="almacenamiento">Almacenamiento (MB):</label>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+
+                        <label for="cpu">CPU (número de cores):</label>
+                        <input type="number" id="cpu" name="cpu" min="1" required>
+
+                        <label for="puerto">Puerto:</label>
+                        <input type="number" id="puerto" name="puerto" min="1" required>
+
+                        <label for="direccionIP">Dirección IP:</label>
+                        <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>
+
+                        <input type="submit" value="Crear Base de Datos">
+                    </form>
+                <?php endif; ?>
 
                 <div class="service-list">
                     <h4>Bases de Datos Configuradas</h4>

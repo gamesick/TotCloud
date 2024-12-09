@@ -466,7 +466,7 @@ try {
 <body>
     <a href="logout.php" class="logout">Cerrar Sesión</a>
     <div class="container">
-        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
+        <a href="homeAdmin.php" class="back-link">← Volver al Inicio Administrativo</a>
         <h2>Administración de SAAS</h2>
         <p>Aquí el personal de TotCloud puede gestionar la configuración, etapas y acceso a los servicios SAAS ofrecidos (Cloud Storage y Video Conference).</p>
 

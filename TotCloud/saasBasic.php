@@ -92,7 +92,7 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anchoBanda' => $anchoBanda,
                 'maxParticipantes' => $maxParticipantes,
                 'idioma' => $idioma,
-                'idVideoConference' => 1,
+                'idVideoConference' => 8,
                 'idPersona' => $idPersona
             ]);
 
