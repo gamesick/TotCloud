@@ -207,7 +207,7 @@ if ($action === 'edit' && $idGrupo > 0) {
 </head>
 <body>
     <div class="container">
-        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
+        <a href="homeAdmin.php" class="back-link">← Inicio </a>
         <h2>Administrar Grupos</h2>
         
         <?php if ($error): ?>
