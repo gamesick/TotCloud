@@ -41,21 +41,23 @@ INSERT INTO ETAPA (idEtapa, nombreEtapa, descripcion, idPersonal) VALUES
 INSERT INTO SERVICIO (idServicio, tipoServicio, descripcion, idEtapa, idPrivilegio) VALUES
 (4, 'Data Base', 'PAAS', 4, 5),
 (5, 'Cloud Storage', 'SAAS', 4, 4),
-(6, 'Video Conference', 'SAAS', 4, 6);
+(6, 'Cloud Storage', 'SAAS', 4, 4),
+(7, 'Cloud Storage', 'SAAS', 4, 4),
+(8, 'Video Conference', 'SAAS', 4, 6);
 
 -- 9. CLOUD_STORAGE
-INSERT INTO CLOUD_STORAGE (idCloudStorage, limiteSubida, velocidad, latencia, idServicio) VALUES
-(1, 3000, 600, 5, 5),
-(2, 4000, 800, 8, 5),
-(3, 5000, 1000, 3, 5);
+INSERT INTO CLOUD_STORAGE (idCloudStorage, limiteSubida, velocidad, latencia) VALUES
+(5, 3000, 600, 5, 5),
+(6, 4000, 800, 8, 5),
+(7, 5000, 1000, 3, 5);
 
 -- 10. DATA_BASE
-INSERT INTO DATA_BASE (idDataBase, idServicio) VALUES
-(1, 4);
+INSERT INTO DATA_BASE (idDataBase) VALUES
+(4);
 
 -- 11. VIDEO_CONFERENCE
-INSERT INTO VIDEO_CONFERENCE (idVideoConference, idServicio) VALUES
-(1, 6);
+INSERT INTO VIDEO_CONFERENCE (idVideoConference) VALUES
+(8);
 
 -- 12. CS_CONFIG
 INSERT INTO CS_CONFIG (idCSConfig, nombreCS, almacenamiento, idCloudStorage, idPersona) VALUES
