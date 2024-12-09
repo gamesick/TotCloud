@@ -34,25 +34,12 @@ $success = '';
 if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
-    $limiteSubida = intval($_POST['limiteSubida']);
-    $velocidad = intval($_POST['velocidad']);
-    $latencia = intval($_POST['latencia']);
+    $idCloudStorage = intval($_POST['idCloudStorage']);
 
-    if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+    if (empty($nombreCS) || $almacenamiento <= 0 || $idCloudStorage <= 0) {
         $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia, idServicio) 
-                                    VALUES(:limiteSubida, :velocidad, :latencia, :idServicio)");
-            $stmt->execute([
-                'limiteSubida' => $limiteSubida,
-                'velocidad' => $velocidad,
-                'latencia' => $latencia,
-                'idServicio' => 5
-            ]);                
-            $idCloudStorage = $pdo->lastInsertId();
-
             // Insertar configuración en CS_CONFIG
             $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
                                     VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
@@ -71,16 +58,12 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Eliminar Cloud Storage
-if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
-    $idDB = intval($_GET['idCloudStorage']);
+if ($action === 'eliminarCS' && isset($_GET['idCSConfig'])) {
+    $idDB = intval($_GET['idCSConfig']);
     try {
         // Primero eliminar CS_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCloudStorage = :idCloudStorage");
-        $stmt->execute(['idCloudStorage' => $idDB]);
-
-        // Luego eliminar la entrada de CLOUD_STORAGE
-        $stmt = $pdo->prepare("DELETE FROM CLOUD_STORAGE WHERE idCloudStorage = :idCloudStorage");
-        $stmt->execute(['idCloudStorage' => $idDB]);
+        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCSConfig = :idCSConfig");
+        $stmt->execute(['idCSConfig' => $idDB]);
 
         $success = "Cloud Storage eliminada exitosamente.";
     } catch (PDOException $e) {
@@ -109,7 +92,7 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anchoBanda' => $anchoBanda,
                 'maxParticipantes' => $maxParticipantes,
                 'idioma' => $idioma,
-                'idVideoConference' => 1,
+                'idVideoConference' => 8,
                 'idPersona' => $idPersona
             ]);
 
@@ -138,7 +121,7 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 $csList = [];
 try {
     $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
+        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
         FROM CS_CONFIG
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
         ORDER BY CS_CONFIG.nombreCS ASC
@@ -163,10 +146,10 @@ try {
 }
 
 // Obtener etapas para el dropdown en aplicaciones
-$etapas = [];
+$cloudstorage = [];
 try {
-    $stmt = $pdo->query("SELECT idEtapa, nombreEtapa FROM ETAPA ORDER BY idEtapa ASC");
-    $etapas = $stmt->fetchAll();
+    $stmt = $pdo->query("SELECT idCloudStorage FROM CLOUD_STORAGE ORDER BY idCloudStorage ASC");
+    $cloudstorage = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Error al obtener etapas: " . $e->getMessage();
 }
@@ -393,14 +376,15 @@ try {
                     <label for="almacenamiento">Almacenamiento (MB):</label>
                     <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
 
-                    <label for="limiteSubida">Límite de Subida (MB):</label>
-                    <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
-
-                    <label for="velocidad">Velocidad (MB/s):</label>
-                    <input type="number" id="velocidad" name="velocidad" min="1" required>
-
-                    <label for="latencia">Latencia (ms):</label>
-                    <input type="number" id="latencia" name="latencia" min="1" required>
+                    <label for="idCloudStorage">Cloud Storage:</label>
+                    <select id="idCloudStorage" name="idCloudStorage" required>
+                        <option value="">Selecciona una Cloud Storage</option>
+                        <?php foreach ($cloudstorage as $et): ?>
+                            <option value="<?php echo (int)$et['idCloudStorage']; ?>">
+                                <?php echo htmlspecialchars($et['idCloudStorage']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
                     <input type="submit" value="Crear Cloud Storage">
                 </form>
@@ -417,8 +401,8 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
                                     <td class="actions">
-                                        <a href="saas.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
-                                        <a href="saas.php?action=eliminarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
+                                        <a href="saas.php?action=editarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Editar</a>
+                                        <a href="saas.php?action=eliminarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Eliminar</a>
                                         
                                     </td>
                                 </tr>
@@ -439,7 +423,7 @@ try {
 
                     <label for="calidad">Calidad:</label>
                     <select id="calidad" name="calidad">
-                        <option value="">-- Selecciona la Calidad --</option>
+                        <option value="">Selecciona la Calidad</option>
                         <option value="240p">240p</option>
                         <option value="480p">480p</option>
                         <option value="720p">720p</option>
@@ -455,7 +439,7 @@ try {
                     
                     <label for="idioma">Idioma:</label>
                     <select id="idioma" name="idioma">
-                        <option value="">-- Selecciona un Idioma --</option>
+                        <option value="">Selecciona un Idioma</option>
                         <option value="Español">Español</option>
                         <option value="English">English</option>
                         <option value="Deutsch">Deutsch</option>

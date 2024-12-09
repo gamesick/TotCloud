@@ -43,13 +43,12 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia, idServicio) 
-                                    VALUES(:limiteSubida, :velocidad, :latencia, :idServicio)");
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia) 
+                                    VALUES(:limiteSubida, :velocidad, :latencia)");
             $stmt->execute([
                 'limiteSubida' => $limiteSubida,
                 'velocidad' => $velocidad,
-                'latencia' => $latencia,
-                'idServicio' => 5
+                'latencia' => $latencia
             ]);                
             $idCloudStorage = $pdo->lastInsertId();
 
@@ -109,7 +108,7 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anchoBanda' => $anchoBanda,
                 'maxParticipantes' => $maxParticipantes,
                 'idioma' => $idioma,
-                'idVideoConference' => 1,
+                'idVideoConference' => 8,
                 'idPersona' => $idPersona
             ]);
 
@@ -438,7 +437,7 @@ try {
 
                     <label for="calidad">Calidad:</label>
                     <select id="calidad" name="calidad">
-                        <option value="">-- Selecciona la Calidad --</option>
+                        <option value="">Selecciona la Calidad</option>
                         <option value="240p">240p</option>
                         <option value="480p">480p</option>
                         <option value="720p">720p</option>
@@ -454,7 +453,7 @@ try {
                     
                     <label for="idioma">Idioma:</label>
                     <select id="idioma" name="idioma">
-                        <option value="">-- Selecciona un Idioma --</option>
+                        <option value="">Selecciona un Idioma</option>
                         <option value="Español">Español</option>
                         <option value="English">English</option>
                         <option value="Deutsch">Deutsch</option>

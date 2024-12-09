@@ -55,7 +55,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => 1,
+                'idDataBase' => 4,
                 'idPersona' => $idPersona
             ]);
 

@@ -346,7 +346,7 @@ try {
 
                     <label for="motor">Motor:</label>
                     <select id="motor" name="motor" required>
-                        <option value="">-- Selecciona el Motor --</option>
+                        <option value="">Selecciona el Motor</option>
                         <option value="MySQL">MySQL</option>
                         <option value="PostgreSQL">PostgreSQL</option>
                         <option value="MariaDB">MariaDB</option>

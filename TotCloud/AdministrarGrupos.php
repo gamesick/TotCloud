@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Eliminar grupo
     try {
         // Verificar si hay personas asignadas a este grupo
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM PERSONA WHERE idGrupo = :idGrupo");
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM USUARIO WHERE idGrupo = :idGrupo");
         $stmt->execute(['idGrupo' => $idGrupo]);
         $count = $stmt->fetchColumn();
 

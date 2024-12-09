@@ -34,25 +34,12 @@ $success = '';
 if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
-    $limiteSubida = intval($_POST['limiteSubida']);
-    $velocidad = intval($_POST['velocidad']);
-    $latencia = intval($_POST['latencia']);
+    $idCloudStorage = intval($_POST['idCloudStorage']);
 
-    if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+    if (empty($nombreCS) || $almacenamiento <= 0 || $idCloudStorage <= 0) {
         $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Crear una nueva entrada en CLOUD_STORAGE
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(limiteSubida, velocidad, latencia, idServicio) 
-                                    VALUES(:limiteSubida, :velocidad, :latencia, :idServicio)");
-            $stmt->execute([
-                'limiteSubida' => $limiteSubida,
-                'velocidad' => $velocidad,
-                'latencia' => $latencia,
-                'idServicio' => 5
-            ]);                
-            $idCloudStorage = $pdo->lastInsertId();
-
             // Insertar configuración en CS_CONFIG
             $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
                                     VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
@@ -71,16 +58,12 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Eliminar Cloud Storage
-if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
-    $idDB = intval($_GET['idCloudStorage']);
+if ($action === 'eliminarCS' && isset($_GET['idCSConfig'])) {
+    $idDB = intval($_GET['idCSConfig']);
     try {
         // Primero eliminar CS_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCloudStorage = :idCloudStorage");
-        $stmt->execute(['idCloudStorage' => $idDB]);
-
-        // Luego eliminar la entrada de CLOUD_STORAGE
-        $stmt = $pdo->prepare("DELETE FROM CLOUD_STORAGE WHERE idCloudStorage = :idCloudStorage");
-        $stmt->execute(['idCloudStorage' => $idDB]);
+        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCSConfig = :idCSConfig");
+        $stmt->execute(['idCSConfig' => $idDB]);
 
         $success = "Cloud Storage eliminada exitosamente.";
     } catch (PDOException $e) {
@@ -392,7 +375,7 @@ try {
 
                     <label for="calidad">Calidad:</label>
                     <select id="calidad" name="calidad">
-                        <option value="">-- Selecciona la Calidad --</option>
+                        <option value="">Selecciona la Calidad</option>
                         <option value="240p">240p</option>
                         <option value="480p">480p</option>
                         <option value="720p">720p</option>
@@ -408,7 +391,7 @@ try {
                     
                     <label for="idioma">Idioma:</label>
                     <select id="idioma" name="idioma">
-                        <option value="">-- Selecciona un Idioma --</option>
+                        <option value="">Selecciona un Idioma</option>
                         <option value="Español">Español</option>
                         <option value="English">English</option>
                         <option value="Deutsch">Deutsch</option>

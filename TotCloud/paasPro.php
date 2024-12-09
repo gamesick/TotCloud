@@ -55,7 +55,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => 1,
+                'idDataBase' => 4,
                 'idPersona' => $idPersona
             ]);
 
@@ -346,7 +346,7 @@ try {
 
                     <label for="motor">Motor:</label>
                     <select id="motor" name="motor" required>
-                        <option value="">-- Selecciona el Motor --</option>
+                        <option value="">Selecciona el Motor</option>
                         <option value="MySQL">MySQL</option>
                         <option value="PostgreSQL">PostgreSQL</option>
                         <option value="MariaDB">MariaDB</option>
