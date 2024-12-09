@@ -20,7 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (password_verify($contrasenya, $usuario['contrasenya'])) {
                     // Autenticación exitosa
                     $_SESSION['usuario_id'] = $usuario['idUsuario'];
-                    switch ($usuario['idGrupo']) {
+                    
+                    $idGrupo = $usuario['idGrupo'];
+                    $stmt = $pdo->prepare('SELECT idPrivilegio FROM R_GRUPO_PRIVILEGIOS WHERE idGrupo = :idGrupo');
+                    $stmt->execute(['idGrupo' => $idGrupo]);
+                    $privilegio = $stmt->fetch();
+
+                    switch ($privilegio['idPrivilegio']) {
                         case NULL:
                             header('Location: espera.php');
                             exit();
