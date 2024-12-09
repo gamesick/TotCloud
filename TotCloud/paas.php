@@ -55,7 +55,7 @@ if ($action === 'crearDB' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cpu' => $cpu,
                 'puerto' => $puerto,
                 'direccionIP' => $direccionIP,
-                'idDataBase' => 1,
+                'idDataBase' => 4,
                 'idPersona' => $idPersona
             ]);
 
@@ -102,9 +102,10 @@ if ($action === 'editarDB' && isset($_GET['idDataBase'])) {
 $dbList = [];
 try {
     $stmt = $pdo->query("
-        SELECT DB_CONFIG.idDBConfig, DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor 
+        SELECT DB_CONFIG.idDBConfig, DB_CONFIG.idDataBase, DB_CONFIG.nombreDB, DB_CONFIG.motor, DB_CONFIG.idPersona 
         FROM DB_CONFIG
         JOIN DATA_BASE ON DB_CONFIG.idDataBase = DATA_BASE.idDataBase
+        JOIN USUARIO ON  DB_CONFIG.idPersona = USUARIO.idUsuario
         ORDER BY DB_CONFIG.nombreDB ASC
     ");
     $dbList = $stmt->fetchAll();

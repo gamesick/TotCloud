@@ -3,6 +3,7 @@
 session_start();
 require 'config.php';
 
+
 // Obtener información del empleado desde la tabla PERSONAL
 try {
     $stmt = $pdo->prepare('
@@ -23,9 +24,9 @@ try {
 }
 
 // Manejo de asignaciones (Agregar, Eliminar)
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-$idGrupo = isset($_GET['idGrupo']) ? intval($_GET['idGrupo']) : 0;
-$idPrivilegio = isset($_GET['idPrivilegio']) ? intval($_GET['idPrivilegio']) : 0;
+$action = isset($_POST['action']) ? $_POST['action'] : '';
+$idGrupo = isset($_POST['idGrupo']) ? intval($_POST['idGrupo']) : 0;
+$idPrivilegio = isset($_POST['idPrivilegio']) ? intval($_POST['idPrivilegio']) : 0;
 $error = '';
 $success = '';
 
@@ -48,12 +49,34 @@ if ($action === 'assign' && $idGrupo > 0 && $idPrivilegio > 0) {
 } elseif ($action === 'remove' && $idGrupo > 0 && $idPrivilegio > 0) {
     // Eliminar privilegio del grupo
     try {
-        $stmt = $pdo->prepare("DELETE FROM R_GRUPO_PRIVILEGIOS WHERE idGrupo = :idGrupo AND idPrivilegio = :idPrivilegio");
-        $stmt->execute([
+        $stmtCheck = $pdo->prepare("
+            SELECT 1 
+            FROM R_GRUPO_PRIVILEGIOS 
+            WHERE idGrupo = :idGrupo AND idPrivilegio = :idPrivilegio
+        ");
+        $stmtCheck->execute([
             'idGrupo' => $idGrupo,
             'idPrivilegio' => $idPrivilegio
         ]);
-        $success = "Privilegio revocado exitosamente.";
+        $exists = $stmtCheck->fetch();
+
+        if ($exists) {
+            $stmt = $pdo->prepare("
+                DELETE FROM R_GRUPO_PRIVILEGIOS 
+                WHERE idGrupo = :idGrupo AND idPrivilegio = :idPrivilegio
+            ");
+            $stmt->execute([
+                'idGrupo' => $idGrupo,
+                'idPrivilegio' => $idPrivilegio
+            ]);
+            $success = "Privilegio revocado exitosamente.";
+        } else {
+            $error = "No se encontró la relación para eliminar.";
+        }
+
+        // Redirección para evitar reenvíos al actualizar la página
+        header("Location: AsignarPrivilegios.php");
+        exit();
     } catch (PDOException $e) {
         $error = "Error al eliminar el privilegio: " . $e->getMessage();
     }
@@ -186,7 +209,8 @@ try {
         <!-- Sección para Asignar Privilegios -->
         <div class="assign-section">
             <h3>Asignar Privilegio</h3>
-            <form action="AsignarPrivilegios.php?action=assign" method="GET">
+            <form action="AsignarPrivilegios.php?action=assign" method="POST">
+            <input type="hidden" name="action" value="assign">
                 <select name="idGrupo" required>
                     <option value="">Selecciona un grupo</option>
                     <?php foreach ($grupos as $grupo): ?>
@@ -219,7 +243,12 @@ try {
                         <td><?php echo htmlspecialchars($asignacion['nombreGrupo']); ?></td>
                         <td><?php echo htmlspecialchars($asignacion['nombrePrivilegio']); ?></td>
                         <td>
-                            <a href="AsignarPrivilegios.php?action=remove&idGrupo=<?php echo $asignacion['idGrupo']; ?>&idPrivilegio=<?php echo $asignacion['idPrivilegio']; ?>" onclick="return confirm('¿Estás seguro de eliminar este privilegio?');">Eliminar</a>
+                        <form action="AsignarPrivilegios.php" method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="idGrupo" value="<?php echo $asignacion['idGrupo']; ?>">
+                        <input type="hidden" name="idPrivilegio" value="<?php echo $asignacion['idPrivilegio']; ?>">
+                         <button type="submit" onclick="return confirm('¿Estás seguro de eliminar este privilegio?');" style="background:none; color:#e53e3e; border:none; cursor:pointer; text-decoration:underline;">Eliminar</button>
+                        </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

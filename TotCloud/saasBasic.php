@@ -121,9 +121,10 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 $csList = [];
 try {
     $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
+        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
         FROM CS_CONFIG
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
+        JOIN USUARIO ON CS_CONFIG.idPersona = USUARIO.idUsuario
         ORDER BY CS_CONFIG.nombreCS ASC
     ");
     $csList = $stmt->fetchAll();
@@ -135,9 +136,10 @@ try {
 $vcList = [];
 try {
     $stmt = $pdo->query("
-        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma
+        SELECT VC_CONFIG.idVCConfig, VC_CONFIG.idVideoConference, VC_CONFIG.nombreVC, VC_CONFIG.calidad, VC_CONFIG.anchoBanda, VC_CONFIG.maxParticipantes, VC_CONFIG.idioma, VC_CONFIG.idPersona
         FROM VC_CONFIG
         JOIN VIDEO_CONFERENCE ON VC_CONFIG.idVideoConference = VIDEO_CONFERENCE.idVideoConference
+        JOIN USUARIO ON VC_CONFIG.idPersona = USUARIO.idUsuario
         ORDER BY VC_CONFIG.nombreVC ASC
     ");
     $vcList = $stmt->fetchAll();

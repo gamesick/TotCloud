@@ -267,7 +267,7 @@ try {
                 <form action="AsignarGrupos.php?action=assign&idGrupo=<?php echo $grupo['idGrupo']; ?>" method="POST" class="assign-form">
                     <label for="idUsuario<?php echo $grupo['idGrupo']; ?>">Asignar Usuario al Grupo:</label>
                     <select name="idUsuario" id="idUsuario<?php echo $grupo['idGrupo']; ?>" required>
-                        <option value="">-- Selecciona un Usuario --</option>
+                        <option value="">Selecciona un Usuario</option>
                         <?php foreach ($usuariosSinGrupo as $usuarioSinGrupo): ?>
                             <option value="<?php echo $usuarioSinGrupo['idUsuario']; ?>">
                                 <?php echo htmlspecialchars($usuarioSinGrupo['nombreUsuario'] . ' (' . $usuarioSinGrupo['nombre'] . ' ' . $usuarioSinGrupo['apellido'] . ')'); ?>
