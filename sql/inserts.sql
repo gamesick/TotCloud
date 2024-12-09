@@ -61,21 +61,21 @@ INSERT INTO VIDEO_CONFERENCE (idVideoConference) VALUES
 
 -- 12. CS_CONFIG
 INSERT INTO CS_CONFIG (idCSConfig, nombreCS, almacenamiento, idCloudStorage, idPersona) VALUES
-(4, 'Drive', 3000, 1, 4),
-(5, 'SharePoint', 4000, 2, 4),
-(6, 'OneDrive', 5000, 3, 4);
+(4, 'Drive', 3000, 5, 4),
+(5, 'SharePoint', 4000, 6, 4),
+(6, 'OneDrive', 5000, 7, 4);
 
 -- 13. DB_CONFIG
 INSERT INTO DB_CONFIG (idDBConfig, nombreDB, motor, usuarios, almacenamiento, cpu, puerto, direccionIP, idDataBase, idPersona) VALUES
-(4, 'marketing_db', 'MariaDB', 7, 150, 4, 3307, '192.168.1.13', 1, 4),
-(5, 'hr_db', 'Oracle', 3, 75, 2, 1521, '192.168.1.14', 1, 4),
-(6, 'it_db', 'SQL Server', 6, 300, 6, 1433, '192.168.1.15', 1, 4);
+(4, 'marketing_db', 'MariaDB', 7, 150, 4, 3307, '192.168.1.13', 4, 4),
+(5, 'hr_db', 'Oracle', 3, 75, 2, 1521, '192.168.1.14', 4, 4),
+(6, 'it_db', 'SQL Server', 6, 300, 6, 1433, '192.168.1.15', 4, 4);
 
 -- 14. VC_CONFIG
 INSERT INTO VC_CONFIG (idVCConfig, nombreVC, calidad, anchoBanda, maxParticipantes, idioma, idVideoConference, idPersona) VALUES
-(4, 'Zoom', '480p', 10000, 1000, 'Deutsch', 1, 4),
-(5, 'Discord', '1080p', 8000, 800, 'Italian', 1, 4),
-(6, 'Meet', '720p', 9000, 900, 'English', 1, 4);
+(4, 'Zoom', '480p', 10000, 1000, 'Deutsch', 8, 4),
+(5, 'Discord', '1080p', 8000, 800, 'Italian', 8, 4),
+(6, 'Meet', '720p', 9000, 900, 'English', 8, 4);
 
 -- 15. R_PERSONA_SERVICIO
 INSERT INTO R_PERSONA_SERVICIO (idServicio, idPersona) VALUES
