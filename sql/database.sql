@@ -145,6 +145,15 @@ CREATE TABLE R_PERSONA_SERVICIO (
     FOREIGN KEY (idPersona) REFERENCES PERSONA(idPersona)
 ); 
 
+CREATE TABLE PROBLEMAS (
+    idProblema INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATETIME NOT NULL,
+    tipo_problema VARCHAR(64) NOT NULL,
+    descripcion TEXT NOT NULL,
+    UNIQUE KEY (tipo_problema, descripcion(200)) 
+);
+
+
 
 CREATE TABLE R_GRUPO_PRIVILEGIOS ( 
     idGrupo INT(8) NOT NULL, 
