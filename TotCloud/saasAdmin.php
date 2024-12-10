@@ -36,17 +36,15 @@ $vcToEdit = null;
 // ---------------------- CLOUD STORAGE ----------------------
 
 // Editar Cloud Storage - Mostrar datos (GET)
-if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $idCS = intval($_GET['idCloudStorage']);
+if ($action === 'editarCS' && isset($_GET['idCSConfig']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idCS = intval($_GET['idCSConfig']);
     try {
         $stmt = $pdo->prepare("
-            SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento,
-                   CLOUD_STORAGE.limiteSubida, CLOUD_STORAGE.velocidad, CLOUD_STORAGE.latencia
+            SELECT CS_CONFIG.idCSConfig, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
             FROM CS_CONFIG
-            JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
-            WHERE CS_CONFIG.idCloudStorage = :idCloudStorage
+            WHERE CS_CONFIG.idCSConfig = :idCSConfig
         ");
-        $stmt->execute(['idCloudStorage' => $idCS]);
+        $stmt->execute(['idCSConfig' => $idCS]);
         $csToEdit = $stmt->fetch();
     } catch (PDOException $e) {
         $error = "Error al obtener la Cloud Storage: " . $e->getMessage();
@@ -111,8 +109,8 @@ if ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && $_SERVER['REQUE
 }
 
 // Editar Cloud Storage (UPDATE)
-if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $idCS = intval($_GET['idCloudStorage']);
+if ($action === 'editarCS' && isset($_GET['idCSConfig']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idCS = intval($_GET['idCSConfig']);
     $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
 
@@ -122,7 +120,7 @@ if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUES
         try {
 
             // Actualizar CS_CONFIG (con nombreCS)
-            $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento WHERE idCloudStorage=:idCS");
+            $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento WHERE idCSConfig=:idCS");
             $stmt->execute([
                 'nombreCS' => $nombreCS,
                 'almacenamiento' => $almacenamiento,
@@ -546,9 +544,9 @@ try {
         <div class="sections">
             <!-- Panel Cloud Storage a la izquierda -->
             <div class="section-card">
-                <?php if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                <?php if ($action === 'editarCS' && isset($_GET['idCSConfig']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
                     <h3><i class="fas fa-edit"></i> Editar Configuración Cloud Storage</h3>
-                    <form action="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$_GET['idCloudStorage']; ?>" method="POST">
+                    <form action="saasAdmin.php?action=editarCS&idCSConfig=<?php echo (int)$_GET['idCSConfig']; ?>" method="POST">
                         <label>Nombre de la Cloud Storage:</label>
                         <input type="text" name="nombreCS" value="<?php echo htmlspecialchars($csToEdit['nombreCS']); ?>" required>
 
@@ -608,7 +606,7 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
                                     <td class="actions">
-                                        <a href="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
+                                        <a href="saasAdmin.php?action=editarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Editar</a>
                                         <a href="saasAdmin.php?action=eliminarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
