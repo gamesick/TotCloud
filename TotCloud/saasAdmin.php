@@ -118,7 +118,6 @@ if ($action === 'editarCS' && isset($_GET['idCSConfig']) && $_SERVER['REQUEST_ME
         $error = "Todos los campos son obligatorios y deben ser válidos.";
     } else {
         try {
-
             // Actualizar CS_CONFIG (con nombreCS)
             $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento WHERE idCSConfig=:idCS");
             $stmt->execute([
