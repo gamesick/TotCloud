@@ -92,27 +92,34 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Editar Cloud Storage - Mostrar datos (GET)
+if ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $idCS = intval($_GET['idCloudStorage']);
+    try {
+        $stmt = $pdo->prepare("
+            SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento,
+                   CLOUD_STORAGE.limiteSubida, CLOUD_STORAGE.velocidad, CLOUD_STORAGE.latencia
+            FROM CS_CONFIG
+            JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
+            WHERE CS_CONFIG.idCloudStorage = :idCloudStorage
+        ");
+        $stmt->execute(['idCloudStorage' => $idCS]);
+        $csToEdit = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error = "Error al obtener la Cloud Storage: " . $e->getMessage();
+    }
+}
+
 // Editar Cloud Storage (UPDATE)
 if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $idCS = intval($_GET['idCloudStorage']);
     $nombreCS = trim($_POST['nombreCS']);
     $almacenamiento = intval($_POST['almacenamiento']);
-    $limiteSubida = intval($_POST['limiteSubida']);
-    $velocidad = intval($_POST['velocidad']);
-    $latencia = intval($_POST['latencia']);
 
-    if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+    if (empty($nombreCS) || $almacenamiento <= 0) {
         $error = "Todos los campos son obligatorios y deben ser válidos.";
     } else {
         try {
-            // Actualizar CLOUD_STORAGE (sin nombreCS)
-            $stmt = $pdo->prepare("UPDATE CLOUD_STORAGE SET limiteSubida=:limiteSubida, velocidad=:velocidad, latencia=:latencia WHERE idCloudStorage=:idCS");
-            $stmt->execute([
-                'limiteSubida' => $limiteSubida,
-                'velocidad' => $velocidad,
-                'latencia' => $latencia,
-                'idCS' => $idCS
-            ]);
 
             // Actualizar CS_CONFIG (con nombreCS)
             $stmt = $pdo->prepare("UPDATE CS_CONFIG SET nombreCS=:nombreCS, almacenamiento=:almacenamiento WHERE idCloudStorage=:idCS");
@@ -132,9 +139,55 @@ if ($action === 'editarCS' && isset($_GET['idCloudStorage']) && $_SERVER['REQUES
 }
 
 // Eliminar Cloud Storage
-if ($action === 'eliminarCS' && isset($_GET['idCloudStorage'])) {
-    $idDB = intval($_GET['idCloudStorage']);
+if ($action === 'eliminarCS' && isset($_GET['idCSConfig'])) {
+    $idDB = intval($_GET['idCSConfig']); // Aquí tomamos el idCSConfig para eliminar la configuración correspondiente
     try {
+        // Eliminar primero la configuración relacionada en la tabla CS_CONFIG
+        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCSConfig = :idCSConfig");
+        $stmt->execute(['idCSConfig' => $idDB]);
+
+        $success = "Cloud Storage eliminada exitosamente.";
+    } catch (PDOException $e) {
+        $error = "Error al eliminar la cloud storage: " . $e->getMessage();
+    }
+}
+
+// Editar Cloud Storage predefinida (UPDATE)
+if ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idCS = intval($_GET['idCloudStorage']);
+    $nombreCS = trim($_POST['nombreCS']);
+    $limiteSubida = intval($_POST['limiteSubida']);
+    $velocidad = intval($_POST['velocidad']);
+    $latencia = intval($_POST['latencia']);
+
+    if (empty($nombreCS) || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
+        $error = "Todos los campos son obligatorios y deben ser válidos.";
+    } else {
+        try {
+            // Actualizar CLOUD_STORAGE (sin nombreCS)
+            $stmt = $pdo->prepare("UPDATE CLOUD_STORAGE SET nombreCS=:nombreCS, limiteSubida=:limiteSubida, velocidad=:velocidad, latencia=:latencia WHERE idCloudStorage=:idCS");
+            $stmt->execute([
+                'nombreCS' => $nombreCS,
+                'limiteSubida' => $limiteSubida,
+                'velocidad' => $velocidad,
+                'latencia' => $latencia,
+                'idCS' => $idCS
+            ]);
+
+            $success = "Cloud Storage editada exitosamente.";
+            $action = '';
+            $csToEdit = null;
+        } catch (PDOException $e) {
+            $error = "Error al editar la cloud storage: " . $e->getMessage();
+        }
+    }
+}
+
+// Eliminar Cloud Storage predefinida
+if ($action === 'eliminarCSp' && isset($_GET['idCloudStorage'])) {
+    $idDB = intval($_GET['idCloudStorage']); // Aquí tomamos el idCSConfig para eliminar la configuración correspondiente
+    try {
+        // Eliminar primero la configuración relacionada en la tabla CS_CONFIG
         $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCloudStorage = :idCloudStorage");
         $stmt->execute(['idCloudStorage' => $idDB]);
 
@@ -239,12 +292,24 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 $csList = [];
 try {
     $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
+        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
         FROM CS_CONFIG
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
         ORDER BY CS_CONFIG.nombreCS ASC
     ");
     $csList = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
+}
+
+$cspList = [];
+try {
+    $stmt = $pdo->query("
+        SELECT CLOUD_STORAGE.idCloudStorage, CLOUD_STORAGE.nombreCS, CLOUD_STORAGE.limiteSubida, CLOUD_STORAGE.velocidad, CLOUD_STORAGE.latencia
+        FROM CLOUD_STORAGE
+        ORDER BY CLOUD_STORAGE.nombreCS ASC
+    ");
+    $cspList = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }
@@ -490,6 +555,14 @@ try {
                         <label>Almacenamiento (MB):</label>
                         <input type="number" name="almacenamiento" min="1" value="<?php echo (int)$csToEdit['almacenamiento']; ?>" required>
 
+                        <input type="submit" value="Guardar Cambios">
+                    </form>
+                    <?php elseif ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                    <h3><i class="fas fa-edit"></i> Editar Configuración Cloud Storage</h3>
+                    <form action="saasAdmin.php?action=editarCSp&idCloudStorage=<?php echo (int)$_GET['idCloudStorage']; ?>" method="POST">
+                        <label>Nombre de la Cloud Storage:</label>
+                        <input type="text" name="nombreCS" value="<?php echo htmlspecialchars($csToEdit['nombreCS']); ?>" required>
+
                         <label>Límite de Subida (MB):</label>
                         <input type="number" name="limiteSubida" min="1" value="<?php echo (int)$csToEdit['limiteSubida']; ?>" required>
 
@@ -536,12 +609,34 @@ try {
                                     <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
                                     <td class="actions">
                                         <a href="saasAdmin.php?action=editarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
-                                        <a href="saasAdmin.php?action=eliminarCS&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
+                                        <a href="saasAdmin.php?action=eliminarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr><td colspan="2">No hay Cloud Storage configuradas.</td></tr>
+                        <?php endif; ?>
+                    </table>
+                </div>
+                <div class="service-list">
+                    <h4>Cloud Storage Predefinidas</h4>
+                    <table>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                        <?php if (!empty($cspList)): ?>
+                            <?php foreach ($cspList as $csItem): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
+                                    <td class="actions">
+                                        <a href="saasAdmin.php?action=editarCSp&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Editar</a>
+                                        <a href="saasAdmin.php?action=eliminarCSp&idCloudStorage=<?php echo (int)$csItem['idCloudStorage']; ?>">Eliminar</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr><td colspan="2">No hay Cloud Storage predefinidas.</td></tr>
                         <?php endif; ?>
                     </table>
                 </div>
