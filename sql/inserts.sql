@@ -39,11 +39,11 @@ INSERT INTO ETAPA (idEtapa, nombreEtapa, descripcion, idPersonal) VALUES
 
 -- 7. SERVICIO
 INSERT INTO SERVICIO (idServicio, tipoServicio, descripcion, idEtapa, idPrivilegio) VALUES
-(4, 'Data Base', 'PAAS', 4, 5),
-(5, 'Cloud Storage', 'SAAS', 4, 4),
-(6, 'Cloud Storage', 'SAAS', 4, 4),
-(7, 'Cloud Storage', 'SAAS', 4, 4),
-(8, 'Video Conference', 'SAAS', 4, 6);
+(4, 'Data Base', 'PAAS', 5, 5),
+(5, 'Cloud Storage', 'SAAS', 5, 4),
+(6, 'Cloud Storage', 'SAAS', 5, 4),
+(7, 'Cloud Storage', 'SAAS', 5, 4),
+(8, 'Video Conference', 'SAAS', 5, 6);
 
 -- 9. CLOUD_STORAGE
 INSERT INTO CLOUD_STORAGE (idCloudStorage, nombreCS, limiteSubida, velocidad, latencia) VALUES
