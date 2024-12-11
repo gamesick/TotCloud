@@ -95,7 +95,7 @@ if ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && $_SERVER['REQUE
     $idCS = intval($_GET['idCloudStorage']);
     try {
         $stmt = $pdo->prepare("
-            SELECT CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento,
+            SELECT CS_CONFIG.idCloudStorage, CLOUD_STORAGE.nombreCS, CS_CONFIG.almacenamiento,
                    CLOUD_STORAGE.limiteSubida, CLOUD_STORAGE.velocidad, CLOUD_STORAGE.latencia
             FROM CS_CONFIG
             JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
