@@ -25,7 +25,7 @@ try {
     exit();
 }
 
-// Manejo de acciones: crear DB, eliminar DB, crear App, eliminar App
+// Manejo de acciones: crear DB, eliminar DB y editar DB
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
@@ -393,16 +393,16 @@ try {
                         </select>
 
                         <label for="usuarios">Número de usuarios permitidos:</label>
-                        <input type="number" id="usuarios" name="usuarios" min="1" value="<?php echo (int)$dbToEdit['usuarios']; ?>" required>
+                        <input type="number" id="usuarios" name="usuarios" min="1" max="200" value="<?php echo (int)$dbToEdit['usuarios']; ?>" required>
 
                         <label for="almacenamiento">Almacenamiento (MB):</label>
-                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" value="<?php echo (int)$dbToEdit['almacenamiento']; ?>" required>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" max="10000" value="<?php echo (int)$dbToEdit['almacenamiento']; ?>" required>
 
                         <label for="cpu">CPU (número de cores):</label>
-                        <input type="number" id="cpu" name="cpu" min="1" value="<?php echo (int)$dbToEdit['cpu']; ?>" required>
+                        <input type="number" id="cpu" name="cpu" min="1" max="16" value="<?php echo (int)$dbToEdit['cpu']; ?>" required>
 
                         <label for="puerto">Puerto:</label>
-                        <input type="number" id="puerto" name="puerto" min="1" value="<?php echo (int)$dbToEdit['puerto']; ?>" required>
+                        <input type="number" id="puerto" name="puerto" min="0" max="65535" value="<?php echo (int)$dbToEdit['puerto']; ?>" required>
 
                         <label for="direccionIP">Dirección IP:</label>
                         <input type="text" id="direccionIP" name="direccionIP" value="<?php echo htmlspecialchars($dbToEdit['direccionIP']); ?>" required>
@@ -425,16 +425,16 @@ try {
                         </select>
 
                         <label for="usuarios">Número de usuarios permitidos:</label>
-                        <input type="number" id="usuarios" name="usuarios" min="1" required>
+                        <input type="number" id="usuarios" name="usuarios" min="1" max="200" required>
 
                         <label for="almacenamiento">Almacenamiento (MB):</label>
-                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                        <input type="number" id="almacenamiento" name="almacenamiento" min="1" max="10000" required>
 
                         <label for="cpu">CPU (número de cores):</label>
-                        <input type="number" id="cpu" name="cpu" min="1" required>
+                        <input type="number" id="cpu" name="cpu" min="1" max="16" required>
 
                         <label for="puerto">Puerto:</label>
-                        <input type="number" id="puerto" name="puerto" min="1" required>
+                        <input type="number" id="puerto" name="puerto" min="0" max="65535" required>
 
                         <label for="direccionIP">Dirección IP:</label>
                         <input type="text" id="direccionIP" name="direccionIP" placeholder="192.168.1.100" required>

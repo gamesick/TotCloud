@@ -25,7 +25,7 @@ try {
     exit();
 }
 
-// Manejo de acciones: crear DB, eliminar DB, crear App, eliminar App
+// Manejo de acciones: crear CS, eliminar CS, editar CS, crear VC, eliminar VC y editar VC
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
@@ -477,8 +477,8 @@ try {
                             <label>Nombre de la Cloud Storage:</label>
                             <input type="text" name="nombreCS" value="<?php echo htmlspecialchars($csToEdit['nombreCS']); ?>" required>
 
-                            <label>Almacenamiento (MB):</label>
-                            <input type="number" name="almacenamiento" min="1" value="<?php echo (int)$csToEdit['almacenamiento']; ?>" required>
+                            <label>Almacenamiento (GB):</label>
+                            <input type="number" name="almacenamiento" min="1" max="500" value="<?php echo (int)$csToEdit['almacenamiento']; ?>" required>
                             
                             <label for="idCloudStorage">Cloud Storage:</label>
                             <select id="idCloudStorage" name="idCloudStorage" required>
@@ -498,8 +498,8 @@ try {
                             <label for="nombreCS">Nombre de la Cloud Storage:</label>
                             <input type="text" id="nombreCS" name="nombreCS" placeholder="Nombre" required>
 
-                            <label for="almacenamiento">Almacenamiento (MB):</label>
-                            <input type="number" id="almacenamiento" name="almacenamiento" min="1" required>
+                            <label for="almacenamiento">Almacenamiento (GB):</label>
+                            <input type="number" id="almacenamiento" name="almacenamiento" min="1" max="500" required>
 
                             <label for="idCloudStorage">Cloud Storage:</label>
                             <select id="idCloudStorage" name="idCloudStorage" required>
@@ -558,11 +558,11 @@ try {
                             <option value="4k" <?php if($vcToEdit['calidad']=='4k') echo 'selected'; ?>>4k</option>
                         </select>
 
-                        <label>Ancho de Banda:</label>
-                        <input type="number" name="anchoBanda" min="1" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
+                        <label>Ancho de Banda (Mbps):</label>
+                        <input type="number" name="anchoBanda" min="1" max="200" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
 
                         <label>Número máximo de Participantes:</label>
-                        <input type="number" name="maxParticipantes" min="1" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
+                        <input type="number" name="maxParticipantes" min="1" max="100" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
                         
                         <label>Idioma:</label>
                         <select name="idioma" required>
@@ -592,11 +592,11 @@ try {
                             <option value="4k">4k</option>
                         </select>
 
-                        <label for="anchoBanda">Ancho de Banda:</label>
-                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+                        <label for="anchoBanda">Ancho de Banda (Mbps):</label>
+                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" max="200" required>
 
                         <label for="maxParticipantes">Número máximo de Participantes:</label>
-                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
+                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" max="100" required>
                         
                         <label for="idioma">Idioma:</label>
                         <select id="idioma" name="idioma" required>

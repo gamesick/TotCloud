@@ -563,7 +563,7 @@ try {
                         <label>Límite de Subida (MB):</label>
                         <input type="number" name="limiteSubida" min="1" value="<?php echo (int)$csToEdit['limiteSubida']; ?>" required>
 
-                        <label>Velocidad (MB/s):</label>
+                        <label>Velocidad (Mbps):</label>
                         <input type="number" name="velocidad" min="1" value="<?php echo (int)$csToEdit['velocidad']; ?>" required>
 
                         <label>Latencia (ms):</label>
@@ -583,7 +583,7 @@ try {
                         <label for="limiteSubida">Límite de Subida (MB):</label>
                         <input type="number" id="limiteSubida" name="limiteSubida" min="1" required>
 
-                        <label for="velocidad">Velocidad (MB/s):</label>
+                        <label for="velocidad">Velocidad (Mbps):</label>
                         <input type="number" id="velocidad" name="velocidad" min="1" required>
 
                         <label for="latencia">Latencia (ms):</label>
@@ -657,7 +657,7 @@ try {
                             <option value="4k" <?php if($vcToEdit['calidad']=='4k') echo 'selected'; ?>>4k</option>
                         </select>
 
-                        <label>Ancho de Banda:</label>
+                        <label>Ancho de Banda (Mbps):</label>
                         <input type="number" name="anchoBanda" min="1" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
 
                         <label>Número máximo de Participantes:</label>
@@ -691,7 +691,7 @@ try {
                             <option value="4k">4k</option>
                         </select>
 
-                        <label for="anchoBanda">Ancho de Banda:</label>
+                        <label for="anchoBanda">Ancho de Banda (Mbps):</label>
                         <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
 
                         <label for="maxParticipantes">Número máximo de Participantes:</label>

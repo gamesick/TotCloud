@@ -25,51 +25,10 @@ try {
     exit();
 }
 
-// Manejo de acciones: crear DB, eliminar DB, crear App, eliminar App
+// Manejo de acciones: crear VC, eliminar VC y editar VC
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $error = '';
 $success = '';
-
-// Crear Cloud Storage
-if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombreCS = trim($_POST['nombreCS']);
-    $almacenamiento = intval($_POST['almacenamiento']);
-    $idCloudStorage = intval($_POST['idCloudStorage']);
-
-    if (empty($nombreCS) || $almacenamiento <= 0 || $idCloudStorage <= 0) {
-        $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
-    } else {
-        try {
-            // Insertar configuración en CS_CONFIG
-            $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
-                                    VALUES (:nombreCS, :almacenamiento, :idCloudStorage, :idPersona)");
-            $stmt->execute([
-                'nombreCS' => $nombreCS,
-                'almacenamiento' => $almacenamiento,
-                'idCloudStorage' => $idCloudStorage,
-                'idPersona' => $idPersona
-            ]);
-
-            $success = "Cloud Storage creada exitosamente.";
-        } catch (PDOException $e) {
-            $error = "Error al crear la cloud storage: " . $e->getMessage();
-        }
-    }
-}
-
-// Eliminar Cloud Storage
-if ($action === 'eliminarCS' && isset($_GET['idCSConfig'])) {
-    $idDB = intval($_GET['idCSConfig']);
-    try {
-        // Primero eliminar CS_CONFIG asociada
-        $stmt = $pdo->prepare("DELETE FROM CS_CONFIG WHERE idCSConfig = :idCSConfig");
-        $stmt->execute(['idCSConfig' => $idDB]);
-
-        $success = "Cloud Storage eliminada exitosamente.";
-    } catch (PDOException $e) {
-        $error = "Error al eliminar la cloud storage: " . $e->getMessage();
-    }
-}
 
 // Crear Video Conference
 if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -92,7 +51,7 @@ if ($action === 'crearVC' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anchoBanda' => $anchoBanda,
                 'maxParticipantes' => $maxParticipantes,
                 'idioma' => $idioma,
-                'idVideoConference' => 1,
+                'idVideoConference' => 8,
                 'idPersona' => $idPersona
             ]);
 
@@ -161,27 +120,6 @@ if ($action === 'editarVC' && isset($_GET['idVCConfig']) && $_SERVER['REQUEST_ME
     }
 }
 
-// Obtener lista de cloud storage
-$csList = [];
-try {
-    // Verificar si $idPersona tiene un valor válido
-    if (isset($idPersona)) {
-        $stmt = $pdo->prepare("
-            SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
-            FROM CS_CONFIG
-            JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
-             WHERE CS_CONFIG.idPersona = :idPersona
-            ORDER BY CS_CONFIG.nombreCS ASC
-        ");
-        $stmt->execute(['idPersona' => $idPersona]);
-        $csList = $stmt->fetchAll();
-    } else {
-        echo "El parámetro idPersona no está definido.";
-    }
-} catch (PDOException $e) {
-    $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
-}
-
 // Obtener lista de video conference
 $vcList = [];
 try {
@@ -208,14 +146,6 @@ try {
     $error = "Error al obtener la lista de aplicaciones: " . $e->getMessage();
 }
 
-// Obtener etapas para el dropdown en aplicaciones
-$etapas = [];
-try {
-    $stmt = $pdo->query("SELECT idEtapa, nombreEtapa FROM ETAPA ORDER BY idEtapa ASC");
-    $etapas = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $error = "Error al obtener etapas: " . $e->getMessage();
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -447,11 +377,11 @@ try {
                             <option value="4k" <?php if($vcToEdit['calidad']=='4k') echo 'selected'; ?>>4k</option>
                         </select>
 
-                        <label>Ancho de Banda:</label>
-                        <input type="number" name="anchoBanda" min="1" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
+                        <label>Ancho de Banda (Mbps):</label>
+                        <input type="number" name="anchoBanda" min="1" max="100" value="<?php echo (int)$vcToEdit['anchoBanda']; ?>" required>
 
                         <label>Número máximo de Participantes:</label>
-                        <input type="number" name="maxParticipantes" min="1" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
+                        <input type="number" name="maxParticipantes" min="1" max="50" value="<?php echo (int)$vcToEdit['maxParticipantes']; ?>" required>
                         
                         <label>Idioma:</label>
                         <select name="idioma" required>
@@ -478,14 +408,13 @@ try {
                             <option value="480p">480p</option>
                             <option value="720p">720p</option>
                             <option value="1080p">1080p</option>
-                            <option value="4k">4k</option>
                         </select>
 
-                        <label for="anchoBanda">Ancho de Banda:</label>
-                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" required>
+                        <label for="anchoBanda">Ancho de Banda (Mbps):</label>
+                        <input type="number" id="anchoBanda" name="anchoBanda" min="1" max="100" required>
 
                         <label for="maxParticipantes">Número máximo de Participantes:</label>
-                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" required>
+                        <input type="number" id="maxParticipantes" name="maxParticipantes" min="1" max="50" required>
                         
                         <label for="idioma">Idioma:</label>
                         <select id="idioma" name="idioma" required>
