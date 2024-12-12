@@ -252,10 +252,10 @@ try {
                     <i class="fas fa-user-shield icon"></i> Asignar Privilegios
                 </a>
                 <a href="AsignarGrupos.php">
-                    <i class="fas fa-user-plus icon"></i> Asignar\n Grupos
+                    <i class="fas fa-user-plus icon" style="margin-right: 15px;"></i> Asignar <br> Grupos
                 </a>
                 <a href="AdministrarEtapas.php">
-                    <i class="fas fa-user-plus icon"></i> Asignar\n Etapas
+                    <i class="fas fa-user-plus icon" style="margin-right: 15px;"></i> Asignar <br> Etapas
                 </a>
             </div>
         </div>
