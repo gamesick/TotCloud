@@ -60,3 +60,57 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+
+
+DELIMITER $$
+
+CREATE PROCEDURE realizar_copia_incremental()
+BEGIN
+    DECLARE fecha_actual DATE;
+    SET fecha_actual = CURDATE();
+
+    -- Copiar datos modificados en DB_CONFIG
+    INSERT INTO HISTORICO_CONFIG (tabla, idRegistro, datos)
+    SELECT 'DB_CONFIG', idDBConfig, JSON_OBJECT(
+        'nombreDB', nombreDB,
+        'motor', motor,
+        'usuarios', usuarios,
+        'almacenamiento', almacenamiento,
+        'cpu', cpu,
+        'puerto', puerto,
+        'direccionIP', direccionIP,
+        'idDataBase', idDataBase,
+        'idPersona', idPersona
+    )
+    FROM DB_CONFIG
+    WHERE DATE(last_modified) = fecha_actual;
+
+    -- Copiar datos modificados en VC_CONFIG
+    INSERT INTO HISTORICO_CONFIG (tabla, idRegistro, datos)
+    SELECT 'VC_CONFIG', idVCConfig, JSON_OBJECT(
+        'nombreVC', nombreVC,
+        'calidad', calidad,
+        'anchoBanda', anchoBanda,
+        'maxParticipantes', maxParticipantes,
+        'idioma', idioma,
+        'idVideoConference', idVideoConference,
+        'idPersona', idPersona
+    )
+    FROM VC_CONFIG
+    WHERE DATE(last_modified) = fecha_actual;
+
+    -- Copiar datos modificados en CS_CONFIG
+    INSERT INTO HISTORICO_CONFIG (tabla, idRegistro, datos)
+    SELECT 'CS_CONFIG', idCSConfig, JSON_OBJECT(
+        'nombreCS', nombreCS,
+        'almacenamiento', almacenamiento,
+        'idCloudStorage', idCloudStorage,
+        'idPersona', idPersona
+    )
+    FROM CS_CONFIG
+    WHERE DATE(last_modified) = fecha_actual;
+END$$
+
+DELIMITER ;
