@@ -256,6 +256,60 @@ try {
 } catch (PDOException $e) {
     $error = "Error al obtener etapas: " . $e->getMessage();
 }
+
+// Obtener lista de bases de datos
+$etapaCS = [];
+$idEtapaPermitidaCS = false;
+
+try {
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT SERVICIO.idEtapa
+            FROM SERVICIO WHERE SERVICIO.tipoServicio = 'Cloud Storage'
+        ");
+        $stmt->execute();
+        $etapaCS = $stmt->fetchAll();
+
+        // Verificar si existe una etapa con valor 4 en los registros
+        foreach ($etapaCS as $etapas) {
+            if ($etapas['idEtapa'] == 5) {
+                $idEtapaPermitidaCS = true;
+                break;
+            }
+        }
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
+} catch (PDOException $e) {
+    $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
+}
+
+// Obtener lista de bases de datos
+$etapaVC = [];
+$idEtapaPermitidaVC = false;
+
+try {
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT SERVICIO.idEtapa
+            FROM SERVICIO WHERE SERVICIO.tipoServicio = 'Video Conference'
+        ");
+        $stmt->execute();
+        $etapaVC = $stmt->fetchAll();
+
+        // Verificar si existe una etapa con valor 4 en los registros
+        foreach ($etapaVC as $etapas) {
+            if ($etapas['idEtapa'] == 5) {
+                $idEtapaPermitidaVC = true;
+                break;
+            }
+        }
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
+} catch (PDOException $e) {
+    $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -469,6 +523,7 @@ try {
 
         <div class="sections">
 
+            <?php if ($idEtapaPermitidaCS): ?>
             <!-- Sección para manejo de Cloud Storage -->
             <div class="section-card">
                 <?php if ($action === 'editarCS' && isset($_GET['idCSConfig']) && !empty($csToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
@@ -539,7 +594,9 @@ try {
                     </table>
                 </div>
             </div>
-                            
+            <?php endif; ?>
+                    
+            <?php if ($idEtapaPermitidaVC): ?>
             <!-- Panel Video Conference a la derecha -->
             <div class="section-card">
                 <?php if ($action === 'editarVC' && isset($_GET['idVCConfig']) && !empty($vcToEdit) && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
@@ -635,6 +692,7 @@ try {
                     </table>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </body>

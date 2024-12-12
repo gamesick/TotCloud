@@ -254,6 +254,9 @@ try {
                 <a href="AsignarGrupos.php">
                     <i class="fas fa-user-plus icon"></i> Asignar\n Grupos
                 </a>
+                <a href="AdministrarEtapas.php">
+                    <i class="fas fa-user-plus icon"></i> Asignar\n Etapas
+                </a>
             </div>
         </div>
     </div>

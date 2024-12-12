@@ -149,16 +149,43 @@ try {
 } catch (PDOException $e) {
     $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
 }
+
+// Obtener lista de bases de datos
+$etapa = [];
+$idEtapaPermitida = false;
+
+try {
+    if (isset($idPersona)) {
+        $stmt = $pdo->prepare("
+            SELECT SERVICIO.idEtapa
+            FROM SERVICIO WHERE SERVICIO.tipoServicio = 'Data Base'
+        ");
+        $stmt->execute();
+        $etapa = $stmt->fetchAll();
+
+        // Verificar si existe una etapa con valor 4 en los registros
+        foreach ($etapa as $etapas) {
+            if ($etapas['idEtapa'] == 5) {
+                $idEtapaPermitida = true;
+                break;
+            }
+        }
+    } else {
+        echo "El parámetro idPersona no está definido.";
+    }
+} catch (PDOException $e) {
+    $error = "Error al obtener la lista de bases de datos: " . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Servicios PAAS - TotCloud</title>
+    <title>Administración PAAS - TotCloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Reset */
+        /* Estilos aplicados anteriormente */
         * {
             margin: 0;
             padding: 0;
@@ -195,7 +222,7 @@ try {
             background-color: #ffffff;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 1000px;
             width: 90%;
@@ -227,6 +254,20 @@ try {
 
         .message.error {
             color: red;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3182ce;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2b6cb0;
+            text-decoration: underline;
         }
 
         .sections {
@@ -332,31 +373,6 @@ try {
             color: #2b6cb0;
             text-decoration: underline;
         }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #3182ce;
-            font-weight: 500;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .back-link:hover {
-            color: #2b6cb0;
-            text-decoration: underline;
-        }
-
-        @media (min-width: 600px) {
-            .sections {
-                flex-wrap: nowrap;
-                justify-content: space-between;
-            }
-
-            .section-card {
-                width: 45%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -374,6 +390,7 @@ try {
             <div class="message success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
 
+        <?php if ($idEtapaPermitida): ?>
         <div class="sections">
             <!-- Sección para manejo de Base de Datos -->
             <div class="section-card">
@@ -467,6 +484,7 @@ try {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>
