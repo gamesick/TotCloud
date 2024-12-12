@@ -255,7 +255,7 @@ try {
                     <i class="fas fa-user-plus icon" style="margin-right: 15px;"></i> Asignar <br> Grupos
                 </a>
                 <a href="AdministrarEtapas.php">
-                    <i class="fas fa-user-plus icon" style="margin-right: 15px;"></i> Asignar <br> Etapas
+                    <i class="fas fa-user-plus icon" style="margin-right: 15px;"></i> Administrar Etapas
                 </a>
             </div>
         </div>
