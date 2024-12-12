@@ -207,7 +207,7 @@ try {
     // Verificar si $idPersona tiene un valor válido
     if (isset($idPersona)) {
         $stmt = $pdo->prepare("
-            SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
+            SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CLOUD_STORAGE.nombreCS AS nombreCSp, CS_CONFIG.almacenamiento, CS_CONFIG.idPersona
             FROM CS_CONFIG
             JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
              WHERE CS_CONFIG.idPersona = :idPersona
@@ -575,12 +575,14 @@ try {
                     <table>
                         <tr>
                             <th>Nombre</th>
+                            <th>Configuracion</th>
                             <th>Acciones</th>
                         </tr>
                         <?php if (!empty($csList)): ?>
                             <?php foreach ($csList as $csItem): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
+                                    <td><?php echo htmlspecialchars($csItem['nombreCSp']); ?></td>
                                     <td class="actions">
                                         <a href="saas.php?action=editarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Editar</a>
                                         <a href="saas.php?action=eliminarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Eliminar</a>

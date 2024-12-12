@@ -289,7 +289,7 @@ if ($action === 'eliminarVC' && isset($_GET['idVCConfig'])) {
 $csList = [];
 try {
     $stmt = $pdo->query("
-        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CS_CONFIG.almacenamiento
+        SELECT CS_CONFIG.idCSConfig, CS_CONFIG.idCloudStorage, CS_CONFIG.nombreCS, CLOUD_STORAGE.nombreCS AS nombreCSp, CS_CONFIG.almacenamiento
         FROM CS_CONFIG
         JOIN CLOUD_STORAGE ON CS_CONFIG.idCloudStorage = CLOUD_STORAGE.idCloudStorage
         ORDER BY CS_CONFIG.nombreCS ASC
@@ -598,12 +598,14 @@ try {
                     <table>
                         <tr>
                             <th>Nombre</th>
+                            <th>Configuracion</th>
                             <th>Acciones</th>
                         </tr>
                         <?php if (!empty($csList)): ?>
                             <?php foreach ($csList as $csItem): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($csItem['nombreCS']); ?></td>
+                                    <td><?php echo htmlspecialchars($csItem['nombreCSp']); ?></td>
                                     <td class="actions">
                                         <a href="saasAdmin.php?action=editarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Editar</a>
                                         <a href="saasAdmin.php?action=eliminarCS&idCSConfig=<?php echo (int)$csItem['idCSConfig']; ?>">Eliminar</a>
@@ -611,7 +613,7 @@ try {
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="2">No hay Cloud Storage configuradas.</td></tr>
+                            <tr><td colspan="3">No hay Cloud Storage configuradas.</td></tr>
                         <?php endif; ?>
                     </table>
                 </div>
