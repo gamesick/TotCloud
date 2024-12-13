@@ -66,7 +66,7 @@ CREATE TABLE ETAPA (
 
 
 CREATE TABLE SERVICIO ( 
-    idServicio INT(8) PRIMARY KEY, 
+    idServicio INT(8) AUTO_INCREMENT PRIMARY KEY, 
     tipoServicio VARCHAR(256) NOT NULL, 
     descripcion VARCHAR(256), 
     idEtapa INT(8) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE SERVICIO (
 
 CREATE TABLE CLOUD_STORAGE ( 
     idCloudStorage INT(8) AUTO_INCREMENT PRIMARY KEY,
-    nombreCS VARCHAR(64) NOT NULL,
+    nombreCS VARCHAR(64) UNIQUE NOT NULL,
     limiteSubida INT(16) NOT NULL, 
     velocidad INT(16) NOT NULL, 
     latencia INT(16) NOT NULL,
