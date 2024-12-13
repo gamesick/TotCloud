@@ -60,19 +60,29 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $latencia = intval($_POST['latencia']);
 
     if (empty($nombreCS) || $almacenamiento <= 0 || $limiteSubida <= 0 || $velocidad <= 0 || $latencia <= 0) {
-        $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser válidos.";
+        $error = "Todos los campos de la Cloud Storage son obligatorios y deben ser vÃ¡lidos.";
     } else {
         try {
+            $stmt = $pdo->prepare("INSERT INTO SERVICIO(tipoServicio, descripcion, idEtapa, idPrivilegio) 
+                                   VALUES(:tipoServicio, :descripcion, :idEtapa, :idPrivilegio)");
+            $stmt->execute([
+                'tipoServicio' => 'Cloud Storage',
+                'descripcion' => 'SAAS',
+                'idEtapa' => 5,
+                'idPrivilegio' => 5
+            ]);
+
+            $idCloudStorage = $pdo->lastInsertId();
             // Insertar en CLOUD_STORAGE (sin nombreCS)
-            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(nombreCs, limiteSubida, velocidad, latencia) 
-                                   VALUES(:nombreCS, :limiteSubida, :velocidad, :latencia)");
+            $stmt = $pdo->prepare("INSERT INTO CLOUD_STORAGE(nombreCS, idCloudStorage, limiteSubida, velocidad, latencia) 
+                                   VALUES(:nombreCS, :idCloudStorage, :limiteSubida, :velocidad, :latencia)");
             $stmt->execute([
                 'nombreCS' => $nombreCS,
+                'idCloudStorage' => $idCloudStorage,
                 'limiteSubida' => $limiteSubida,
                 'velocidad' => $velocidad,
                 'latencia' => $latencia
             ]);
-            $idCloudStorage = $pdo->lastInsertId();
 
             // Insertar en CS_CONFIG con nombreCS
             $stmt = $pdo->prepare("INSERT INTO CS_CONFIG (nombreCS, almacenamiento, idCloudStorage, idPersona) 
@@ -90,7 +100,6 @@ if ($action === 'crearCS' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 // Editar Cloud Storage - Mostrar datos (GET)
 if ($action === 'editarCSp' && isset($_GET['idCloudStorage']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $idCS = intval($_GET['idCloudStorage']);
