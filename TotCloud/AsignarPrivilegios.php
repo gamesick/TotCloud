@@ -195,7 +195,7 @@ try {
 </head>
 <body>
     <div class="container">
-        <a href="homeadmin.php" class="back-link">← Volver al Inicio Administrativo</a>
+        <a href="homeAdmin.php" class="back-link">← Volver al Inicio Administrativo</a>
         <h2>Asignar Privilegios a Grupos</h2>
         
         <?php if ($error): ?>
